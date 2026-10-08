@@ -7,6 +7,11 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 data class ApiResponse(val status: Int, val body: JSONObject)
+data class RawApiResponse(
+    val status: Int,
+    val body: ByteArray,
+    val contentType: String?,
+)
 
 object ApiClient {
     fun request(path: String, method: String = "GET", body: JSONObject? = null): ApiResponse {
@@ -17,7 +22,7 @@ object ApiClient {
         val connection = URL("${BuildConfig.API_BASE_URL}$path").openConnection() as HttpURLConnection
         connection.requestMethod = method
         connection.connectTimeout = 12_000
-        connection.readTimeout = 20_000
+        connection.readTimeout = 60_000
         connection.setRequestProperty("Authorization", "Bearer $idToken")
         connection.setRequestProperty("Accept", "application/json")
         connection.setRequestProperty("Cache-Control", "no-store")
@@ -34,6 +39,28 @@ object ApiClient {
             val responseText = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
             val responseBody = if (responseText.isBlank()) JSONObject() else JSONObject(responseText)
             ApiResponse(status, responseBody)
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    fun requestRaw(path: String, method: String = "GET"): RawApiResponse {
+        val user = FirebaseAuth.getInstance().currentUser
+            ?: throw IllegalStateException("Silakan masuk kembali ke aplikasi.")
+        val idToken = Tasks.await(user.getIdToken(false)).token
+            ?: throw IllegalStateException("Token login belum tersedia.")
+        val connection = URL("${BuildConfig.API_BASE_URL}$path").openConnection() as HttpURLConnection
+        connection.requestMethod = method
+        connection.connectTimeout = 12_000
+        connection.readTimeout = 60_000
+        connection.setRequestProperty("Authorization", "Bearer $idToken")
+        connection.setRequestProperty("Accept", "*/*")
+        connection.setRequestProperty("Cache-Control", "no-store")
+        return try {
+            val status = connection.responseCode
+            val stream = if (status in 200..299) connection.inputStream else connection.errorStream
+            val bytes = stream?.use { it.readBytes() } ?: byteArrayOf()
+            RawApiResponse(status, bytes, connection.contentType)
         } finally {
             connection.disconnect()
         }

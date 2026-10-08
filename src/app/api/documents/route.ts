@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
-import { getSessionUser } from "@/lib/auth/session";
+import { getRequestUser } from "@/lib/auth/session";
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 import { callDocumentGas } from "@/lib/gas/documents";
 
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
   let user;
   try {
-    user = await getSessionUser();
+    user = await getRequestUser(request);
   } catch (error) {
     console.error("Document upload authentication failed:", error);
     return NextResponse.json({ error: "Server authentication is not configured." }, { status: 500 });

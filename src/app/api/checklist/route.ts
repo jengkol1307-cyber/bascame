@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
-import { getSessionUser } from "@/lib/auth/session";
+import { getRequestUser } from "@/lib/auth/session";
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 
 type ChecklistItem = {
@@ -17,8 +17,8 @@ async function getChecklistCollection(uid: string) {
     .collection("checklist");
 }
 
-export async function GET() {
-  const user = await getSessionUser();
+export async function GET(request: Request) {
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
 
   try {
@@ -42,7 +42,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const user = await getSessionUser();
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
   let body: { title?: unknown; category?: unknown };
   try {
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const user = await getSessionUser();
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
   let body: { id?: unknown; done?: unknown };
   try {
@@ -104,7 +104,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const user = await getSessionUser();
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
   let body: { id?: unknown };
   try {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/session";
+import { getRequestUser } from "@/lib/auth/session";
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 import { callDocumentGas } from "@/lib/gas/documents";
 
@@ -8,7 +8,7 @@ type RouteContext = {
 };
 
 export async function GET(_request: Request, context: RouteContext) {
-  const user = await getSessionUser();
+  const user = await getRequestUser(_request);
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
   const { documentId } = await context.params;
 
@@ -63,7 +63,7 @@ export async function GET(_request: Request, context: RouteContext) {
 }
 
 export async function DELETE(_request: Request, context: RouteContext) {
-  const user = await getSessionUser();
+  const user = await getRequestUser(_request);
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
   const { documentId } = await context.params;
 

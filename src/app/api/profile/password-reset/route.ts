@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/session";
+import { getRequestUser } from "@/lib/auth/session";
 
-export async function POST() {
-  const user = await getSessionUser();
+export async function POST(request: Request) {
+  const user = await getRequestUser(request);
   if (!user?.email) {
     return NextResponse.json({ error: "Sesi akun tidak valid." }, { status: 401 });
   }

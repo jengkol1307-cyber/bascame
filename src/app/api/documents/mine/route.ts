@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/session";
+import { getRequestUser } from "@/lib/auth/session";
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 
-export async function GET() {
-  const user = await getSessionUser();
+export async function GET(request: Request) {
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
 
   try {

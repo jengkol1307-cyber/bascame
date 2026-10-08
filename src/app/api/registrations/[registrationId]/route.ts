@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
-import { getSessionUser } from "@/lib/auth/session";
+import { getRequestUser, getSessionUser } from "@/lib/auth/session";
 import { getAssignedBasecampId, getUserRole, hasPermission } from "@/lib/auth/roles";
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 import {
@@ -212,7 +212,7 @@ async function cancelOwnRegistration(
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const user = await getSessionUser();
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
   if (getUserRole(user) === "user") {
     const { registrationId } = await context.params;
@@ -307,8 +307,8 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 }
 
-export async function DELETE(_request: Request, context: RouteContext) {
-  const user = await getSessionUser();
+export async function DELETE(request: Request, context: RouteContext) {
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
   if (getUserRole(user) !== "user") {
     return NextResponse.json({ error: "Hanya pemilik pengajuan yang dapat membatalkannya." }, { status: 403 });

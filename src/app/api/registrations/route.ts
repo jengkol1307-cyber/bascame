@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
-import { getRequestUser, getSessionUser } from "@/lib/auth/session";
+import { getRequestUser } from "@/lib/auth/session";
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 import { getAssignedBasecampId, getUserRole, hasPermission } from "@/lib/auth/roles";
 import {
@@ -81,7 +81,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const user = await getSessionUser();
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
   if (getUserRole(user) !== "user") {
     return NextResponse.json({ error: "Akun staf tidak dapat membuat pendaftaran pendaki." }, { status: 403 });

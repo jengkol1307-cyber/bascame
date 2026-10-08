@@ -1,6 +1,8 @@
 # Basecamp Pendaki Android
 
-The Android app is a Kotlin native companion to the Basecamp web dashboard. It currently provides Firebase email/password sign-in, checked-in trip selection, background location tracking with a local upload queue, SOS submission with a stable retry ID, and a MapLibre offline-area download screen.
+The Android app is a Kotlin native companion to the Basecamp web dashboard. Its native hiker workspace includes trip summaries and applications, public mountain information, a personal checklist, private document upload/download, public announcements, profile and emergency-contact editing, Firebase password-reset requests, and checked-in trip selection. It also provides background location tracking with a local upload queue, SOS submission with a stable retry ID, and a MapLibre offline-area download screen.
+
+Authenticated Android API calls use the Firebase ID token. The corresponding API routes accept either that bearer token or the existing web session cookie, so the native app does not need to persist a web session cookie.
 
 ## Local setup
 

@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
-import { getSessionUser } from "@/lib/auth/session";
+import { getRequestUser } from "@/lib/auth/session";
 import {
   getFirebaseAdminAuth,
   getFirebaseAdminFirestore,
 } from "@/lib/firebase/admin";
 
-export async function GET() {
-  const user = await getSessionUser();
+export async function GET(request: Request) {
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
 
   try {
@@ -30,7 +30,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const user = await getSessionUser();
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
   let body: Record<string, unknown>;
   try {
