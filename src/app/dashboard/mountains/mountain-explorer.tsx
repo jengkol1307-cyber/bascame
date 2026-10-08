@@ -9,6 +9,7 @@ type Mountain = {
   location: string;
   elevation: string;
   status: string;
+  quota: number | null;
   description: string;
 };
 
@@ -65,6 +66,7 @@ export function MountainExplorer() {
                 <span className="hiker-badge">{mountain.status}</span>
                 <h3>{mountain.name}</h3>
                 <p>{mountain.location || "Lokasi basecamp belum diatur"}{mountain.elevation ? ` · ${mountain.elevation}` : ""}</p>
+                {mountain.quota !== null && <p>Kuota harian: {mountain.quota} pendaki</p>}
                 {mountain.description && <p>{mountain.description}</p>}
                 <Link className="button button-primary" href={`/dashboard/trips?mountain=${encodeURIComponent(mountain.id)}`}>Rencanakan pendakian <span aria-hidden="true">→</span></Link>
               </div>

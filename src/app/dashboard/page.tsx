@@ -68,7 +68,7 @@ export default async function UserDashboardPage() {
   }
 
   const nextTrip = trips.find((trip) =>
-    ["pending", "approved", "needs_revision"].includes(trip.status),
+    ["pending", "approved", "needs_revision", "revision_requested", "checked_in"].includes(trip.status),
   );
 
   return (
@@ -93,7 +93,13 @@ export default async function UserDashboardPage() {
                 <h2>{nextTrip.mountainName}</h2>
                 <p>{nextTrip.startDate} – {nextTrip.endDate}</p>
                 <span className={`hiker-badge hiker-badge-${nextTrip.status}`}>
-                  {nextTrip.status === "approved" ? "Disetujui" : nextTrip.status === "needs_revision" ? "Perlu perbaikan" : "Menunggu verifikasi"}
+                  {nextTrip.status === "approved"
+                    ? "Disetujui"
+                    : ["needs_revision", "revision_requested"].includes(nextTrip.status)
+                      ? "Perlu revisi"
+                      : nextTrip.status === "checked_in"
+                        ? "Sedang mendaki"
+                        : "Menunggu verifikasi"}
                 </span>
               </>
             ) : (
@@ -136,7 +142,21 @@ export default async function UserDashboardPage() {
               <div className="hiker-list-row" key={trip.id}>
                 <span className="hiker-list-icon" aria-hidden="true">↟</span>
                 <div className="hiker-list-content"><strong>{trip.mountainName}</strong><span>{trip.startDate} – {trip.endDate}</span></div>
-                <span className={`hiker-badge hiker-badge-${trip.status}`}>{trip.status === "approved" ? "Disetujui" : trip.status === "rejected" ? "Ditolak" : "Menunggu"}</span>
+                <span className={`hiker-badge hiker-badge-${trip.status}`}>
+                  {trip.status === "approved"
+                    ? "Disetujui"
+                    : trip.status === "rejected"
+                      ? "Ditolak"
+                      : ["needs_revision", "revision_requested"].includes(trip.status)
+                        ? "Perlu revisi"
+                        : trip.status === "checked_in"
+                          ? "Sedang mendaki"
+                          : trip.status === "checked_out"
+                            ? "Selesai"
+                            : trip.status === "cancelled"
+                              ? "Dibatalkan"
+                              : "Menunggu"}
+                </span>
               </div>
             ))}
           </section>

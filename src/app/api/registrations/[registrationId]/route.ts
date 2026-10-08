@@ -4,6 +4,15 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getSessionUser } from "@/lib/auth/session";
 import { getAssignedBasecampId, getUserRole, hasPermission } from "@/lib/auth/roles";
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
+import {
+  getCapacityLockRefs,
+  getTripDays,
+  isCapacityAvailable,
+  isMountainOpenForRegistration,
+  parseHikerRegistrationInput,
+  readCapacityLocks,
+  touchCapacityLocks,
+} from "@/lib/registrations/capacity";
 
 type RouteContext = {
   params: Promise<{ registrationId: string }>;
@@ -12,12 +21,193 @@ type RouteContext = {
 type UpdateBody = {
   status?: unknown;
   note?: unknown;
-  action?: unknown;
 };
+
+function readObjectBody(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function registrationErrorResponse(error: unknown) {
+  if (!(error instanceof Error)) return null;
+  switch (error.message) {
+    case "REGISTRATION_NOT_FOUND":
+      return NextResponse.json({ error: "Pendaftaran tidak ditemukan." }, { status: 404 });
+    case "REGISTRATION_SCOPE_DENIED":
+      return NextResponse.json({ error: "Akses ke pendaftaran ini ditolak." }, { status: 403 });
+    case "REGISTRATION_NOT_EDITABLE":
+      return NextResponse.json(
+        { error: "Pengajuan hanya dapat diubah atau dibatalkan saat menunggu atau perlu revisi." },
+        { status: 409 },
+      );
+    case "MOUNTAIN_NOT_AVAILABLE":
+      return NextResponse.json({ error: "Gunung tidak tersedia untuk pendaftaran." }, { status: 404 });
+    case "MOUNTAIN_CLOSED":
+      return NextResponse.json({ error: "Jalur sedang tidak dibuka untuk pendaftaran." }, { status: 409 });
+    case "MOUNTAIN_CAPACITY_FULL":
+      return NextResponse.json(
+        { error: "Kuota harian tidak mencukupi untuk jumlah anggota pada tanggal yang dipilih." },
+        { status: 409 },
+      );
+    default:
+      return null;
+  }
+}
+
+async function updateOwnRegistration(
+  request: Request,
+  registrationId: string,
+  user: NonNullable<Awaited<ReturnType<typeof getSessionUser>>>,
+) {
+  let body: Record<string, unknown>;
+  try {
+    const parsedBody = readObjectBody(await request.json());
+    if (!parsedBody) {
+      return NextResponse.json({ error: "Permintaan tidak valid." }, { status: 400 });
+    }
+    body = parsedBody;
+  } catch {
+    return NextResponse.json({ error: "Permintaan tidak valid." }, { status: 400 });
+  }
+  const input = parseHikerRegistrationInput(body);
+  if (!input) {
+    return NextResponse.json({ error: "Periksa kembali data pendakian." }, { status: 400 });
+  }
+
+  try {
+    const firestore = getFirebaseAdminFirestore();
+    const registrationRef = firestore.collection("registrations").doc(registrationId);
+    await firestore.runTransaction(async (transaction) => {
+      const current = await transaction.get(registrationRef);
+      if (!current.exists) throw new Error("REGISTRATION_NOT_FOUND");
+      const currentData = current.data()!;
+      if (currentData.ownerUid !== user.uid) throw new Error("REGISTRATION_SCOPE_DENIED");
+      if (!["pending", "revision_requested", "needs_revision"].includes(String(currentData.status))) {
+        throw new Error("REGISTRATION_NOT_EDITABLE");
+      }
+      if (
+        typeof currentData.mountainId !== "string" ||
+        currentData.mountainId.includes("/") ||
+        typeof currentData.startDate !== "string" ||
+        typeof currentData.endDate !== "string"
+      ) {
+        throw new Error("REGISTRATION_NOT_EDITABLE");
+      }
+
+      const previousDays = getTripDays(currentData.startDate, currentData.endDate);
+      if (!previousDays) throw new Error("REGISTRATION_NOT_EDITABLE");
+      const reservations = [
+        { mountainId: currentData.mountainId, days: previousDays },
+        { mountainId: input.mountainId, days: input.days },
+      ];
+      const capacityLocks = getCapacityLockRefs(firestore, reservations);
+      const mountainRef = firestore.collection("mountains").doc(input.mountainId);
+      const mountainQuery = firestore
+        .collection("registrations")
+        .where("mountainId", "==", input.mountainId);
+      const [mountain, registrations] = await Promise.all([
+        transaction.get(mountainRef),
+        transaction.get(mountainQuery),
+        readCapacityLocks(transaction, capacityLocks),
+      ]).then(([mountainSnapshot, registrationSnapshot]) => [
+        mountainSnapshot,
+        registrationSnapshot,
+      ] as const);
+
+      if (!mountain.exists || mountain.get("visibility") !== "public") {
+        throw new Error("MOUNTAIN_NOT_AVAILABLE");
+      }
+      if (!isMountainOpenForRegistration(mountain.get("status"))) {
+        throw new Error("MOUNTAIN_CLOSED");
+      }
+      if (
+        !isCapacityAvailable({
+          registrations,
+          days: input.days,
+          groupSize: input.groupSize,
+          quota: mountain.get("quota"),
+          excludeId: current.id,
+        })
+      ) {
+        throw new Error("MOUNTAIN_CAPACITY_FULL");
+      }
+
+      touchCapacityLocks(transaction, capacityLocks);
+      transaction.update(registrationRef, {
+        mountainId: mountain.id,
+        ...(typeof mountain.get("basecampId") === "string"
+          ? { basecampId: mountain.get("basecampId") }
+          : { basecampId: FieldValue.delete() }),
+        mountainName: typeof mountain.get("name") === "string" ? mountain.get("name") : "Gunung",
+        startDate: input.startDate,
+        endDate: input.endDate,
+        groupSize: input.groupSize,
+        emergencyContactName: input.emergencyContactName,
+        emergencyContactPhone: input.emergencyContactPhone,
+        notes: input.notes,
+        status: "pending",
+        decisionNote: FieldValue.delete(),
+        decisionBy: FieldValue.delete(),
+        decisionAt: FieldValue.delete(),
+        ticketCode: null,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    const response = registrationErrorResponse(error);
+    if (response) return response;
+    console.error("Could not update hiker registration:", error);
+    return NextResponse.json({ error: "Pengajuan belum dapat diperbarui." }, { status: 500 });
+  }
+}
+
+async function cancelOwnRegistration(
+  registrationId: string,
+  user: NonNullable<Awaited<ReturnType<typeof getSessionUser>>>,
+) {
+  try {
+    const firestore = getFirebaseAdminFirestore();
+    const registrationRef = firestore.collection("registrations").doc(registrationId);
+    await firestore.runTransaction(async (transaction) => {
+      const current = await transaction.get(registrationRef);
+      if (!current.exists) throw new Error("REGISTRATION_NOT_FOUND");
+      const data = current.data()!;
+      if (data.ownerUid !== user.uid) throw new Error("REGISTRATION_SCOPE_DENIED");
+      if (!["pending", "revision_requested", "needs_revision"].includes(String(data.status))) {
+        throw new Error("REGISTRATION_NOT_EDITABLE");
+      }
+
+      const days = getTripDays(data.startDate, data.endDate);
+      const capacityLocks =
+        typeof data.mountainId === "string" && days
+          ? getCapacityLockRefs(firestore, [{ mountainId: data.mountainId, days }])
+          : [];
+      await readCapacityLocks(transaction, capacityLocks);
+      touchCapacityLocks(transaction, capacityLocks);
+      transaction.update(registrationRef, {
+        status: "cancelled",
+        cancelledAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    const response = registrationErrorResponse(error);
+    if (response) return response;
+    console.error("Could not cancel hiker registration:", error);
+    return NextResponse.json({ error: "Pengajuan belum dapat dibatalkan." }, { status: 500 });
+  }
+}
 
 export async function PATCH(request: Request, context: RouteContext) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
+  if (getUserRole(user) === "user") {
+    const { registrationId } = await context.params;
+    return updateOwnRegistration(request, registrationId, user);
+  }
 
   let body: UpdateBody;
   try {
@@ -25,10 +215,10 @@ export async function PATCH(request: Request, context: RouteContext) {
   } catch {
     return NextResponse.json({ error: "Permintaan tidak valid." }, { status: 400 });
   }
+
   const role = getUserRole(user);
   const isPlatformAdmin = role === "admin" || role === "superadmin";
   const canDecide = hasPermission(user, "registrations:decide");
-  const canCheckIn = hasPermission(user, "field:checkin");
   const note = typeof body.note === "string" ? body.note.trim() : "";
   if (note.length > 500) {
     return NextResponse.json({ error: "Catatan maksimal 500 karakter." }, { status: 400 });
@@ -55,22 +245,8 @@ export async function PATCH(request: Request, context: RouteContext) {
       updatedAt: FieldValue.serverTimestamp(),
       ...(note ? { decisionNote: note } : {}),
       ...(body.status === "approved"
-        ? { ticketCode: `BC-${randomBytes(5).toString("hex").toUpperCase()}` }
+        ? { ticketCode: `BC-${randomBytes(16).toString("hex").toUpperCase()}` }
         : {}),
-    };
-  } else if (canCheckIn && body.action === "check_in") {
-    update = {
-      status: "checked_in",
-      checkedInBy: user.uid,
-      checkedInAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
-    };
-  } else if (canCheckIn && body.action === "check_out") {
-    update = {
-      status: "checked_out",
-      checkedOutBy: user.uid,
-      checkedOutAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
     };
   } else {
     return NextResponse.json({ error: "Aksi tidak diizinkan." }, { status: 403 });
@@ -90,18 +266,13 @@ export async function PATCH(request: Request, context: RouteContext) {
           throw new Error("REGISTRATION_SCOPE_DENIED");
         }
       }
+
       if (
         canDecide &&
         body.status &&
-        !["pending", "revision_requested"].includes(String(data.status))
+        !["pending", "revision_requested", "needs_revision"].includes(String(data.status))
       ) {
         throw new Error("REGISTRATION_NOT_DECIDABLE");
-      }
-      if (body.action === "check_in" && data.status !== "approved") {
-        throw new Error("REGISTRATION_NOT_CHECKIN_READY");
-      }
-      if (body.action === "check_out" && data.status !== "checked_in") {
-        throw new Error("REGISTRATION_NOT_CHECKED_IN");
       }
       transaction.update(registrationRef, update);
     });
@@ -120,20 +291,18 @@ export async function PATCH(request: Request, context: RouteContext) {
           { status: 409 },
         );
       }
-      if (error.message === "REGISTRATION_NOT_CHECKIN_READY") {
-        return NextResponse.json(
-          { error: "Hanya pendaftaran yang disetujui yang dapat check-in." },
-          { status: 409 },
-        );
-      }
-      if (error.message === "REGISTRATION_NOT_CHECKED_IN") {
-        return NextResponse.json(
-          { error: "Pendaki harus check-in sebelum check-out." },
-          { status: 409 },
-        );
-      }
     }
     console.error("Could not update registration status:", error);
     return NextResponse.json({ error: "Status pendaftaran belum dapat diperbarui." }, { status: 500 });
   }
+}
+
+export async function DELETE(_request: Request, context: RouteContext) {
+  const user = await getSessionUser();
+  if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
+  if (getUserRole(user) !== "user") {
+    return NextResponse.json({ error: "Hanya pemilik pengajuan yang dapat membatalkannya." }, { status: 403 });
+  }
+  const { registrationId } = await context.params;
+  return cancelOwnRegistration(registrationId, user);
 }

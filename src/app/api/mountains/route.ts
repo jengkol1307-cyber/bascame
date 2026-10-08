@@ -7,6 +7,7 @@ type Mountain = {
   location: string;
   elevation: string;
   status: string;
+  quota: number | null;
   description: string;
 };
 
@@ -25,6 +26,7 @@ export async function GET() {
         location: typeof data.location === "string" ? data.location : "",
         elevation: typeof data.elevation === "string" ? data.elevation : "",
         status: typeof data.status === "string" ? data.status : "Belum dikonfirmasi",
+        quota: typeof data.quota === "number" ? data.quota : null,
         description: typeof data.description === "string" ? data.description : "",
       };
     });

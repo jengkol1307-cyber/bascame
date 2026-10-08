@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import type { UserRole } from "@/lib/auth/roles";
+import { QrTicketScanner } from "./qr-ticket-scanner";
 
 type RegistrationRecord = {
   id: string;
@@ -94,6 +95,26 @@ function RegistrationWorkspace({ role }: { role: UserRole }) {
       .finally(() => setIsLoading(false));
   }
 
+  async function scanTicket(ticketCode: string, action: "check_in" | "check_out") {
+    const response = await fetch("/api/registrations/scan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ticketCode, action }),
+    });
+    const result = (await response.json()) as {
+      error?: string;
+      action?: "check_in" | "check_out";
+      mountainName?: string;
+      startDate?: string;
+      endDate?: string;
+      groupSize?: number | null;
+    };
+    if (!response.ok) throw new Error(result.error ?? "Tiket belum dapat diproses.");
+    reload();
+    const actionLabel = result.action === "check_in" ? "Check-in berhasil" : "Check-out berhasil";
+    return `${actionLabel}: ${result.mountainName ?? "Gunung"} · ${result.startDate ?? ""} – ${result.endDate ?? ""} · ${result.groupSize ?? "—"} orang.`;
+  }
+
   useEffect(() => {
     let isCurrent = true;
     fetch("/api/registrations", { cache: "no-store" })
@@ -123,7 +144,7 @@ function RegistrationWorkspace({ role }: { role: UserRole }) {
 
   async function updateRegistration(
     registration: RegistrationRecord,
-    update: { status?: string; action?: string },
+    update: { status?: string },
   ) {
     let note: string | undefined;
     if (update.status === "rejected" || update.status === "revision_requested") {
@@ -160,6 +181,9 @@ function RegistrationWorkspace({ role }: { role: UserRole }) {
         </div>
         <button className="button button-secondary" type="button" onClick={reload}>Muat ulang</button>
       </div>
+      {["admin", "superadmin", "basecamp_admin", "field_officer"].includes(role) && (
+        <QrTicketScanner onScanned={scanTicket} />
+      )}
       {errorMessage && <p className="auth-error" role="alert">{errorMessage}</p>}
       {isLoading ? (
         <p>Memuat pendaftaran...</p>
@@ -180,12 +204,8 @@ function RegistrationWorkspace({ role }: { role: UserRole }) {
               </div>
               <div className="operation-actions">
                 {fieldOnly ? (
-                  registration.status === "approved" ? (
-                    <button className="button button-primary" type="button" onClick={() => void updateRegistration(registration, { action: "check_in" })}>Check-in</button>
-                  ) : registration.status === "checked_in" ? (
-                    <button className="button button-secondary" type="button" onClick={() => void updateRegistration(registration, { action: "check_out" })}>Check-out</button>
-                  ) : null
-                ) : ["pending", "revision_requested"].includes(registration.status ?? "") ? (
+                  null
+                ) : ["pending", "revision_requested", "needs_revision"].includes(registration.status ?? "") ? (
                   <>
                     <button className="button button-primary" type="button" onClick={() => void updateRegistration(registration, { status: "approved" })}>Setujui</button>
                     <button className="button button-secondary" type="button" onClick={() => void updateRegistration(registration, { status: "revision_requested" })}>Minta revisi</button>
@@ -498,7 +518,7 @@ function InformationWorkspace() {
           <>
             <label className="form-field">Lokasi<input value={location} onChange={(event) => setLocation(event.target.value)} maxLength={120} /></label>
             <label className="form-field">Ketinggian<input value={elevation} onChange={(event) => setElevation(event.target.value)} maxLength={40} /></label>
-            <label className="form-field">Status jalur<input value={status} onChange={(event) => setStatus(event.target.value)} minLength={2} maxLength={80} required /></label>
+            <label className="form-field">Status jalur<input value={status} onChange={(event) => setStatus(event.target.value)} minLength={2} maxLength={80} required /><span>Hanya status “Buka” atau “Dibuka” yang menerima pengajuan pendakian.</span></label>
             <label className="form-field">Kuota (opsional)<input type="number" min="0" step="1" value={quota} onChange={(event) => setQuota(event.target.value)} /></label>
           </>
         ) : null}

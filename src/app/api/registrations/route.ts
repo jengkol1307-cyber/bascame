@@ -1,19 +1,16 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
-import type { QuerySnapshot } from "firebase-admin/firestore";
 import { getSessionUser } from "@/lib/auth/session";
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 import { getAssignedBasecampId, getUserRole, hasPermission } from "@/lib/auth/roles";
-
-type CreateRegistration = {
-  mountainId?: unknown;
-  startDate?: unknown;
-  endDate?: unknown;
-  groupSize?: unknown;
-  emergencyContactName?: unknown;
-  emergencyContactPhone?: unknown;
-  notes?: unknown;
-};
+import {
+  getCapacityLockRefs,
+  isCapacityAvailable,
+  isMountainOpenForRegistration,
+  parseHikerRegistrationInput,
+  readCapacityLocks,
+  touchCapacityLocks,
+} from "@/lib/registrations/capacity";
 
 export async function GET() {
   const user = await getSessionUser();
@@ -22,7 +19,7 @@ export async function GET() {
   try {
     const role = getUserRole(user);
     const registrationsCollection = getFirebaseAdminFirestore().collection("registrations");
-    let snapshot: QuerySnapshot;
+    let snapshot: FirebaseFirestore.QuerySnapshot;
     if (role === "user") {
       snapshot = await registrationsCollection.where("ownerUid", "==", user.uid).limit(100).get();
     } else if (
@@ -93,86 +90,96 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Profil akun belum lengkap." }, { status: 400 });
   }
 
-  let body: CreateRegistration;
+  let body: Record<string, unknown>;
   try {
-    body = (await request.json()) as CreateRegistration;
+    const parsedBody: unknown = await request.json();
+    if (
+      typeof parsedBody !== "object" ||
+      parsedBody === null ||
+      Array.isArray(parsedBody)
+    ) {
+      return NextResponse.json({ error: "Permintaan tidak valid." }, { status: 400 });
+    }
+    body = parsedBody as Record<string, unknown>;
   } catch {
     return NextResponse.json({ error: "Permintaan tidak valid." }, { status: 400 });
   }
 
-  if (
-    typeof body.mountainId !== "string" ||
-    !body.mountainId.trim() ||
-    typeof body.startDate !== "string" ||
-    typeof body.endDate !== "string" ||
-    !Number.isInteger(body.groupSize) ||
-    typeof body.groupSize !== "number" ||
-    body.groupSize < 1 ||
-    body.groupSize > 20 ||
-    typeof body.emergencyContactName !== "string" ||
-    typeof body.emergencyContactPhone !== "string" ||
-    (body.notes !== undefined && typeof body.notes !== "string")
-  ) {
+  const input = parseHikerRegistrationInput(body);
+  if (!input) {
     return NextResponse.json({ error: "Periksa kembali data pendakian." }, { status: 400 });
-  }
-
-  const start = new Date(`${body.startDate}T00:00:00.000Z`);
-  const end = new Date(`${body.endDate}T00:00:00.000Z`);
-  const now = new Date();
-  now.setUTCHours(0, 0, 0, 0);
-  if (
-    Number.isNaN(start.getTime()) ||
-    Number.isNaN(end.getTime()) ||
-    start < now ||
-    end < start ||
-    end.getTime() - start.getTime() > 14 * 24 * 60 * 60 * 1000
-  ) {
-    return NextResponse.json({ error: "Rentang tanggal pendakian tidak valid." }, { status: 400 });
-  }
-
-  const emergencyContactName = body.emergencyContactName.trim();
-  const emergencyContactPhone = body.emergencyContactPhone.trim();
-  const notes = typeof body.notes === "string" ? body.notes.trim() : "";
-  if (
-    emergencyContactName.length < 2 ||
-    emergencyContactName.length > 80 ||
-    emergencyContactPhone.length < 6 ||
-    emergencyContactPhone.length > 32 ||
-    notes.length > 500
-  ) {
-    return NextResponse.json({ error: "Data kontak darurat atau catatan tidak valid." }, { status: 400 });
   }
 
   try {
     const firestore = getFirebaseAdminFirestore();
-    const mountain = await firestore.collection("mountains").doc(body.mountainId).get();
-    if (!mountain.exists || mountain.get("visibility") !== "public") {
-      return NextResponse.json({ error: "Gunung tidak tersedia untuk pendaftaran." }, { status: 404 });
-    }
+    const mountainRef = firestore.collection("mountains").doc(input.mountainId);
+    const registrationRef = firestore.collection("registrations").doc();
+    const capacityLocks = getCapacityLockRefs(firestore, [
+      { mountainId: input.mountainId, days: input.days },
+    ]);
+    await firestore.runTransaction(async (transaction) => {
+      const mountainQuery = firestore
+        .collection("registrations")
+        .where("mountainId", "==", input.mountainId);
+      const [mountain, registrations] = await Promise.all([
+        transaction.get(mountainRef),
+        transaction.get(mountainQuery),
+        readCapacityLocks(transaction, capacityLocks),
+      ]);
 
-    const document = await firestore.collection("registrations").add({
-      ownerUid: user.uid,
-      ownerEmail: user.email,
-      ownerName: user.name ?? user.username ?? user.email,
-      mountainId: mountain.id,
-      ...(typeof mountain.get("basecampId") === "string"
-        ? { basecampId: mountain.get("basecampId") }
-        : {}),
-      mountainName: typeof mountain.get("name") === "string" ? mountain.get("name") : "Gunung",
-      startDate: body.startDate,
-      endDate: body.endDate,
-      groupSize: body.groupSize,
-      emergencyContactName,
-      emergencyContactPhone,
-      notes,
-      status: "pending",
-      ticketCode: null,
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
+      if (!mountain.exists || mountain.get("visibility") !== "public") {
+        throw new Error("MOUNTAIN_NOT_AVAILABLE");
+      }
+      if (!isMountainOpenForRegistration(mountain.get("status"))) {
+        throw new Error("MOUNTAIN_CLOSED");
+      }
+      if (
+        !isCapacityAvailable({
+          registrations,
+          days: input.days,
+          groupSize: input.groupSize,
+          quota: mountain.get("quota"),
+        })
+      ) {
+        throw new Error("MOUNTAIN_CAPACITY_FULL");
+      }
+
+      touchCapacityLocks(transaction, capacityLocks);
+      transaction.create(registrationRef, {
+        ownerUid: user.uid,
+        ownerEmail: user.email,
+        ownerName: user.name ?? user.username ?? user.email,
+        mountainId: mountain.id,
+        ...(typeof mountain.get("basecampId") === "string"
+          ? { basecampId: mountain.get("basecampId") }
+          : {}),
+        mountainName: typeof mountain.get("name") === "string" ? mountain.get("name") : "Gunung",
+        startDate: input.startDate,
+        endDate: input.endDate,
+        groupSize: input.groupSize,
+        emergencyContactName: input.emergencyContactName,
+        emergencyContactPhone: input.emergencyContactPhone,
+        notes: input.notes,
+        status: "pending",
+        ticketCode: null,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
     });
 
-    return NextResponse.json({ ok: true, registrationId: document.id }, { status: 201 });
+    return NextResponse.json({ ok: true, registrationId: registrationRef.id }, { status: 201 });
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "MOUNTAIN_NOT_AVAILABLE") {
+        return NextResponse.json({ error: "Gunung tidak tersedia untuk pendaftaran." }, { status: 404 });
+      }
+      if (error.message === "MOUNTAIN_CLOSED") {
+        return NextResponse.json({ error: "Jalur sedang tidak dibuka untuk pendaftaran." }, { status: 409 });
+      }
+      if (error.message === "MOUNTAIN_CAPACITY_FULL") {
+        return NextResponse.json({ error: "Kuota harian tidak mencukupi untuk jumlah anggota pada tanggal yang dipilih." }, { status: 409 });
+      }
+    }
     console.error("Could not submit mountain registration:", error);
     return NextResponse.json({ error: "Pendaftaran belum dapat disimpan." }, { status: 500 });
   }

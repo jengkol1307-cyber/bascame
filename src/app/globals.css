@@ -996,6 +996,20 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .operation-card { align-items: flex-start; }
 .operation-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
 .operation-actions .button { min-height: 34px; padding: 0 9px; font-size: 10px; }
+.qr-scanner-panel { display: grid; gap: 12px; margin-top: 20px; padding: 16px; border: 1px solid #e5ebe6; border-radius: 9px; background: #f8faf7; }
+.qr-scanner-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.qr-scanner-heading > div, .hiker-ticket-qr > div { display: grid; gap: 5px; }
+.qr-scanner-heading strong, .hiker-ticket-qr strong { color: #31453c; font-size: 12px; }
+.qr-scanner-heading span, .hiker-ticket-qr span, .hiker-ticket-qr small { color: #76847b; font-size: 11px; line-height: 1.5; }
+.qr-scanner-modes { display: flex; flex-wrap: wrap; gap: 8px; }
+.qr-scanner-video { display: none; width: 100%; max-height: 360px; border-radius: 6px; background: #17211b; object-fit: cover; }
+.qr-scanner-video.is-active { display: block; }
+.qr-scanner-manual { display: flex; align-items: flex-end; gap: 10px; }
+.qr-scanner-manual .form-field { flex: 1; margin: 0; }
+.qr-scanner-manual input { width: 100%; min-height: 40px; padding: 9px 11px; border: 1px solid #dce1d9; border-radius: 4px; }
+.hiker-ticket-qr { display: flex; align-items: center; gap: 16px; margin: 12px 0 18px 49px; padding: 12px; width: fit-content; border: 1px solid #e5ebe6; border-radius: 8px; background: #fff; }
+.hiker-ticket-qr svg { flex: 0 0 auto; }
+.hiker-ticket-qr small { color: #31453c; font-weight: 700; letter-spacing: .06em; }
 
 @media (max-width: 760px) {
   .dashboard-form-grid { grid-template-columns: 1fr; gap: 0; }
@@ -1006,6 +1020,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .staff-section-heading { flex-direction: column; }
   .operation-card { flex-direction: column; }
   .operation-actions { justify-content: flex-start; }
+  .qr-scanner-heading, .qr-scanner-manual { align-items: stretch; flex-direction: column; }
+  .qr-scanner-manual .button { align-self: flex-start; }
+  .hiker-ticket-qr { margin-left: 0; }
 }
 
 .admin-dashboard-shell { display: grid; grid-template-columns: 252px minmax(0, 1fr); background: #f4f6f3; }

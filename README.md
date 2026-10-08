@@ -41,6 +41,8 @@ Claim lama `role: "admin"` tetap dianggap sebagai admin platform penuh untuk kom
 
 Permintaan operasional tersedia melalui `/api/registrations`, `/api/finance`, dan `/api/basecamp/information`. Pendaftaran dan transaksi baru harus terkait dengan Basecamp yang sama. Firestore Rules menolak penulisan langsung; akses dilakukan lewat route handler yang melakukan otorisasi server.
 
+Pendaki hanya dapat mengajukan ke gunung publik dengan status jalur `Buka`, `Dibuka`, atau `Open`. Jika kuota harian diatur, pengajuan menunggu revisi dan disetujui menahan kuota per hari sampai ditolak atau dibatalkan. Pendaki dapat mengubah atau membatalkan pengajuan yang masih menunggu/perlu revisi; perubahan akan dikirim ulang untuk verifikasi. Tiket QR digital tersedia pada pengajuan yang disetujui; petugas memilih mode check-in atau check-out sebelum memindai QR agar pemindaian berulang tidak mengubah check-in menjadi check-out tanpa sengaja.
+
 ### Menyiapkan akun superadmin pertama
 
 Simpan service account di `.env.local` dan tambahkan `SUPERADMIN_PASSWORD` (Firebase mewajibkan setidaknya 6 karakter; gunakan sandi unik yang kuat di luar pengujian). Jalankan `npm run bootstrap:superadmin`. Script membuat atau memperbarui akun `dionyyr@gmail.com`, menetapkan display name/username `superadmin` dan custom claim `role: "superadmin"`, serta menulis profil `/users/{uid}` di Firestore. Script juga memperbarui sandi akun jika akun tersebut sudah ada. Setelah berhasil, hapus `SUPERADMIN_PASSWORD` dari `.env.local`; pengguna perlu keluar lalu masuk kembali agar custom claim baru masuk ke token.

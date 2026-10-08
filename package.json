@@ -13,9 +13,11 @@
     "bootstrap:superadmin": "node scripts/bootstrap-superadmin.mjs"
   },
   "dependencies": {
+    "@zxing/browser": "^0.2.1",
     "firebase": "^12.19.0",
     "firebase-admin": "^14.5.0",
     "next": "16.4.0",
+    "qrcode.react": "^4.2.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
