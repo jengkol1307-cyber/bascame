@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { getFirebaseAdminAuth, getFirebaseAdminFirestore } from "@/lib/firebase/admin";
+import { getFirebaseAdminAuth } from "@/lib/firebase/admin";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
+import { getDashboardPath, getUserRole } from "@/lib/auth/roles";
+import { resolveEmail } from "@/lib/auth/resolve-email";
 
 const SESSION_DURATION_MS = 5 * 24 * 60 * 60 * 1000;
 const FIREBASE_AUTH_ERROR =
@@ -10,38 +12,6 @@ type LoginRequest = {
   identifier?: unknown;
   password?: unknown;
 };
-
-async function resolveEmail(identifier: string) {
-  if (identifier.includes("@")) return identifier.toLowerCase();
-
-  const normalizedUsername = identifier.toLowerCase();
-  const firestore = getFirebaseAdminFirestore();
-  const usernameIndex = await firestore
-    .collection("usernames")
-    .doc(normalizedUsername)
-    .get();
-  if (usernameIndex.exists) {
-    const uid = usernameIndex.get("uid");
-    if (typeof uid === "string") {
-      const indexedUser = await firestore.collection("users").doc(uid).get();
-      const indexedEmail = indexedUser.get("email");
-      if (typeof indexedEmail === "string") return indexedEmail.toLowerCase();
-    }
-  }
-
-  const users = firestore.collection("users");
-  const normalizedMatch = await users
-    .where("usernameNormalized", "==", normalizedUsername)
-    .limit(1)
-    .get();
-  const profile = normalizedMatch.empty
-    ? await users.where("username", "==", normalizedUsername).limit(1).get()
-    : normalizedMatch;
-
-  if (profile.empty) return null;
-  const email = profile.docs[0].get("email");
-  return typeof email === "string" ? email.toLowerCase() : null;
-}
 
 export async function POST(request: Request) {
   let body: LoginRequest;
@@ -111,16 +81,24 @@ export async function POST(request: Request) {
 
     const auth = getFirebaseAdminAuth();
     const decodedToken = await auth.verifyIdToken(tokens.idToken);
+    const role = getUserRole(decodedToken);
+    if (role === "disabled") {
+      return NextResponse.json({ error: "Akun ini telah dinonaktifkan." }, { status: 403 });
+    }
+    if (decodedToken.mustChangePassword === true) {
+      return NextResponse.json(
+        { ok: true, mustChangePassword: true, role },
+        { status: 200 },
+      );
+    }
     const sessionCookie = await auth.createSessionCookie(tokens.idToken, {
       expiresIn: SESSION_DURATION_MS,
     });
-    const role =
-      decodedToken.role === "superadmin"
-        ? "superadmin"
-        : decodedToken.role === "admin"
-          ? "admin"
-          : "user";
-    const response = NextResponse.json({ ok: true, role });
+    const response = NextResponse.json({
+      ok: true,
+      role,
+      destination: getDashboardPath(decodedToken),
+    });
     response.cookies.set(SESSION_COOKIE_NAME, sessionCookie, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

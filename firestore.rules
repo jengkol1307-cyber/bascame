@@ -5,67 +5,122 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isAdmin() {
+    function isPlatformAdmin() {
       return signedIn()
         && request.auth.token.role in ['admin', 'superadmin'];
     }
 
+    function hasBasecampRole(basecampId, roles) {
+      return signedIn()
+        && request.auth.token.role in roles
+        && request.auth.token.basecampId == basecampId;
+    }
+
+    function managesBasecamp(basecampId) {
+      return isPlatformAdmin()
+        || hasBasecampRole(basecampId, ['basecamp_admin']);
+    }
+
     match /users/{userId} {
-      allow read: if isAdmin() || (signedIn() && request.auth.uid == userId);
+      allow read: if signedIn() && request.auth.uid == userId;
       allow create: if signedIn()
         && request.auth.uid == userId
-        && !request.resource.data.keys().hasAny(['role', 'admin', 'permissions']);
-      allow update: if isAdmin()
-        || (signedIn()
-          && request.auth.uid == userId
-          && !request.resource.data.diff(resource.data).affectedKeys()
-            .hasAny([
-              'role',
-              'admin',
-              'permissions',
-              'basecampId',
-              'email',
-              'uid',
-              'username',
-              'usernameNormalized',
-              'createdAt'
-            ]));
-      allow delete: if isAdmin();
+        && !request.resource.data.keys().hasAny([
+          'role',
+          'admin',
+          'permissions',
+          'basecampId',
+          'accountType'
+        ]);
+      allow update: if signedIn()
+        && request.auth.uid == userId
+        && !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny([
+            'role',
+            'admin',
+            'permissions',
+            'basecampId',
+            'accountType',
+            'email',
+            'uid',
+            'username',
+            'usernameNormalized',
+            'createdAt'
+          ]);
+      allow delete: if false;
+
+      match /checklist/{itemId} {
+        allow read, write: if signedIn() && request.auth.uid == userId;
+      }
     }
 
     match /basecamps/{basecampId} {
-      allow read: if isAdmin() || resource.data.visibility == 'public';
-      allow write: if isAdmin();
+      allow read: if resource.data.visibility == 'public'
+        || managesBasecamp(basecampId)
+        || hasBasecampRole(basecampId, [
+          'registration_operator',
+          'treasurer',
+          'field_officer',
+          'information_manager'
+        ]);
+      allow write: if false;
+
+      match /staff/{staffId} {
+        allow read: if managesBasecamp(basecampId);
+        allow write: if false;
+      }
+
+      match /mountains/{mountainId} {
+        allow read: if resource.data.visibility == 'public'
+          || managesBasecamp(basecampId)
+          || hasBasecampRole(basecampId, [
+            'registration_operator',
+            'field_officer',
+            'information_manager'
+          ]);
+        allow write: if false;
+      }
+
+      match /announcements/{announcementId} {
+        allow read: if resource.data.visibility == 'public'
+          || managesBasecamp(basecampId)
+          || hasBasecampRole(basecampId, ['information_manager']);
+        allow write: if false;
+      }
     }
 
     match /routes/{routeId} {
-      allow read: if isAdmin() || resource.data.visibility == 'public';
-      allow write: if isAdmin();
+      allow read: if isPlatformAdmin() || resource.data.visibility == 'public';
+      allow write: if false;
     }
 
     match /mountains/{mountainId} {
-      allow read: if isAdmin() || resource.data.visibility == 'public';
-      allow write: if isAdmin();
+      allow read: if isPlatformAdmin()
+        || resource.data.visibility == 'public'
+        || (resource.data.basecampId is string
+          && (managesBasecamp(resource.data.basecampId)
+            || hasBasecampRole(resource.data.basecampId, [
+              'registration_operator',
+              'field_officer',
+              'information_manager'
+            ])));
+      allow write: if false;
     }
 
     match /announcements/{announcementId} {
-      allow read: if isAdmin() || resource.data.visibility == 'public';
-      allow write: if isAdmin();
+      allow read: if isPlatformAdmin() || resource.data.visibility == 'public';
+      allow write: if false;
     }
 
     match /usernames/{username} {
       allow read, write: if false;
     }
 
-    match /users/{userId}/checklist/{itemId} {
-      allow read, write: if signedIn() && request.auth.uid == userId;
-    }
-
     match /registrations/{registrationId} {
-      allow read: if isAdmin()
+      allow read: if isPlatformAdmin()
         || (signedIn() && resource.data.ownerUid == request.auth.uid);
       allow create: if signedIn()
-        && request.resource.data.ownerUid == request.auth.uid
+        && request.auth.uid == request.resource.data.ownerUid
         && request.resource.data.groupSize is int
         && request.resource.data.groupSize >= 1
         && request.resource.data.groupSize <= 20
@@ -79,6 +134,7 @@ service cloud.firestore {
           'ownerName',
           'mountainId',
           'mountainName',
+          'basecampId',
           'startDate',
           'endDate',
           'groupSize',
@@ -90,13 +146,17 @@ service cloud.firestore {
           'createdAt',
           'updatedAt'
         ]);
-      allow update, delete: if isAdmin();
+      allow update, delete: if isPlatformAdmin();
+    }
+
+    match /financialTransactions/{transactionId} {
+      allow read, write: if false;
     }
 
     match /documents/{documentId} {
-      allow read: if isAdmin()
+      allow read: if isPlatformAdmin()
         || (signedIn() && resource.data.ownerUid == request.auth.uid);
-      allow write: if isAdmin();
+      allow write: if false;
     }
 
     match /{document=**} {

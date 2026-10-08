@@ -1,16 +1,16 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth/session";
+import { getDashboardPath } from "@/lib/auth/roles";
 import { SignOutButton } from "../sign-out-button";
+import { BasecampManager } from "./basecamp-manager";
 
 export const instant = false;
 
 export default async function SuperadminDashboardPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
-  if (user.role !== "superadmin") {
-    redirect(user.role === "admin" ? "/dashboard/admin" : "/dashboard");
-  }
+  if (user.role !== "superadmin") redirect(getDashboardPath(user));
 
   return (
     <main className="dashboard-shell">
@@ -43,11 +43,11 @@ export default async function SuperadminDashboardPage() {
         <div className="dashboard-panel" id="platform">
           <h2>Pengelolaan platform</h2>
           <p>
-            Akun ini memiliki custom claim <code>role: superadmin</code> dan
-            profil di Firestore. Pengelolaan basecamp dan admin akan ditambahkan
-            berikutnya.
+            Buat Basecamp dan tetapkan Admin Basecamp. Akun admin dibatasi pada
+            Basecamp yang dibuat dan wajib mengganti sandi sementara saat login pertama.
           </p>
         </div>
+        <BasecampManager />
       </section>
     </main>
   );

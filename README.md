@@ -20,9 +20,26 @@ Isi `.env.local` dengan konfigurasi Firebase dan GAS sebelum menggunakan login, 
 2. Masukkan konfigurasi aplikasi web Firebase ke variabel `NEXT_PUBLIC_FIREBASE_*`.
 3. Buat service account untuk Firebase Admin dan simpan seluruh JSON sebagai `FIREBASE_SERVICE_ACCOUNT_JSON`. Jangan pernah mengekspos atau memasukkan file service account ke Git.
 4. Deploy `firestore.rules` ke Firestore dan `database.rules.json` ke Realtime Database. Rules client secara default menolak akses yang tidak diizinkan; operasi Admin SDK berjalan di server.
-5. Dashboard pengelola hanya bisa dibuka oleh akun dengan Firebase custom claim `role: "admin"`. Atur claim melalui lingkungan admin yang tepercaya, bukan dari browser atau endpoint publik.
+5. Jangan pernah menetapkan role dari browser. Role diberikan server menggunakan Firebase custom claims; endpoint operasional memeriksa role dan `basecampId`, sedangkan operasi Admin SDK tidak dilindungi oleh Firestore Rules.
 
 Realtime Database disiapkan untuk status operasional cepat. Firestore menyimpan data aplikasi utama dan metadata dokumen; file dokumen tetap privat di Google Drive.
+
+### Role staf dan akun Basecamp
+
+Role internal menggunakan custom claim `role`:
+
+- `superadmin`: membuat Basecamp dan akun Admin Basecamp.
+- `basecamp_admin`: akses operasional penuh hanya untuk satu Basecamp dan mengelola stafnya.
+- `registration_operator`: membaca serta memproses pendaftaran.
+- `treasurer`: mencatat tagihan, pembayaran, refund, dan membaca transaksi.
+- `field_officer`: melihat manifest dengan data minimum serta check-in/check-out.
+- `information_manager`: mengelola informasi gunung, status, kuota, dan pengumuman.
+
+Setiap akun staf terikat ke satu `basecampId`. Superadmin membuat Basecamp dari dashboard; Admin Basecamp menambahkan staf melalui **Manajemen akun staf**. Admin menetapkan sandi sementara, yang tidak disimpan di Firestore. Sesi tidak dibuat sampai staf menggantinya saat login pertama. Akses staf dicabut dari menu yang sama.
+
+Claim lama `role: "admin"` tetap dianggap sebagai admin platform penuh untuk kompatibilitas. Jangan gunakan role lama tersebut untuk akun pengelola Basecamp baru; buat akun `basecamp_admin` dari dashboard superadmin. Setelah custom claim akun lama diubah, pemilik akun perlu masuk kembali agar token diperbarui.
+
+Permintaan operasional tersedia melalui `/api/registrations`, `/api/finance`, dan `/api/basecamp/information`. Pendaftaran dan transaksi baru harus terkait dengan Basecamp yang sama. Firestore Rules menolak penulisan langsung; akses dilakukan lewat route handler yang melakukan otorisasi server.
 
 ### Menyiapkan akun superadmin pertama
 
@@ -51,8 +68,10 @@ Buat project Vercel terlebih dahulu agar ID project dan organisasi tersedia. Jik
 - Halaman publik Basecamp dan contoh kartu status gunung.
 - Pendaftaran/masuk Firebase Authentication dengan sesi cookie HttpOnly yang diverifikasi server menggunakan Firebase Admin.
 - Login menerima email atau username yang terdaftar pada profil Firestore.
-- Dashboard pendaki dan dashboard admin berbasis custom claim.
+- Dashboard pendaki dan dashboard staf berbasis role; data staf dibatasi pada satu Basecamp.
+- Pengelolaan Basecamp, pembuatan akun staf dengan sandi sementara, penggantian sandi wajib saat login pertama, dan pencabutan akses.
+- Endpoint pendaftaran, pencatatan keuangan, dan pengelolaan informasi yang memeriksa role pada server.
 - Unggah dokumen privat ke Drive melalui GAS dengan metadata di Firestore.
 - Rules awal Firestore dan Realtime Database serta workflow GitHub Actions untuk Vercel.
 
-Data gunung pada halaman publik saat ini hanya contoh antarmuka, bukan informasi kondisi jalur terkini. Fitur pendaftaran pendakian dan pengelolaan data basecamp akan dikembangkan berikutnya.
+Kartu gunung di halaman utama masih berupa contoh antarmuka. Data gunung yang dikelola staf tersedia pada halaman pendakian dan API publik; pengelola tetap bertanggung jawab memperbarui kondisi jalur dari sumber resmi.

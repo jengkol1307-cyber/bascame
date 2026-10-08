@@ -306,3 +306,991 @@ button, input { font: inherit; }
   .hiker-checklist-form { grid-template-columns: 1fr; }
   .hiker-mountain-grid { grid-template-columns: 1fr; }
 }
+
+:root {
+  --ink: #172b28;
+  --ink-soft: #52635e;
+  --green: #28614f;
+  --green-dark: #173e35;
+  --sage: #e9f0eb;
+  --paper: #f7f8f5;
+  --line: #e2e8e3;
+  --muted: #788780;
+  --accent: #d99a63;
+  --surface: #ffffff;
+  --shadow-soft: 0 14px 40px rgb(23 43 40 / 7%);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background:
+    radial-gradient(ellipse at 80% 0%, rgb(222 233 222 / 35%), transparent 34rem),
+    var(--paper);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  letter-spacing: -.01em;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid rgb(217 154 99 / 55%);
+  outline-offset: 3px;
+}
+
+.brand { gap: 11px; color: var(--ink); font-size: 19px; font-weight: 760; letter-spacing: -.9px; }
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #367660, #1c4c3d);
+  box-shadow: 0 5px 13px rgb(33 91 70 / 22%);
+  font-family: Georgia, serif;
+  font-size: 21px;
+}
+.brand-period { color: var(--accent); }
+.eyebrow { color: #78867c; font-size: 10px; letter-spacing: 1.7px; }
+.button {
+  min-height: 48px;
+  padding: 0 21px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+}
+.button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgb(23 43 40 / 12%); }
+.button-small { min-height: 41px; border-radius: 8px; }
+.button-outline { border-color: #d6dfd8; background: rgb(255 255 255 / 75%); color: var(--ink); }
+.button-outline:hover { border-color: #a9bbae; background: white; }
+.button-primary { background: linear-gradient(135deg, #34725c, #245844); box-shadow: 0 5px 14px rgb(33 91 70 / 17%); color: white; }
+.button-primary:hover { background: linear-gradient(135deg, #2e684f, #1d4938); }
+.button-text { color: var(--ink-soft); }
+.button-light { border-color: rgb(255 255 255 / 35%); border-radius: 9px; background: #f4f2e9; }
+
+.site-header {
+  width: min(1240px, calc(100% - 80px));
+  height: 88px;
+  border-bottom-color: rgb(226 232 227 / 80%);
+}
+.main-nav { gap: 34px; color: #5b6c64; font-size: 13px; font-weight: 550; }
+.main-nav a { transition: color .18s ease; }
+.main-nav a:hover, .button-text:hover { color: #a76537; }
+.hero {
+  width: min(1240px, calc(100% - 80px));
+  min-height: 590px;
+  grid-template-columns: 1fr 1.03fr;
+  gap: 74px;
+}
+.hero-copy { padding: 48px 0 58px; }
+.hero .eyebrow { display: inline-flex; align-items: center; padding: 9px 12px; border: 1px solid #e1e8e0; border-radius: 99px; background: rgb(255 255 255 / 70%); }
+.live-dot { width: 7px; height: 7px; margin-right: 8px; background: var(--accent); box-shadow: 0 0 0 4px rgb(217 154 99 / 15%); }
+.hero h1 {
+  margin: 26px 0 20px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(48px, 5.4vw, 70px);
+  letter-spacing: -3.4px;
+  line-height: 1.01;
+}
+.hero h1 span { color: #728b79; }
+.hero-copy > p { max-width: 430px; color: #5f7069; font-size: 15px; line-height: 1.9; }
+.hero-actions { gap: 22px; margin-top: 32px; }
+.hero-note { margin-top: 46px; color: #788780; font-size: 12px; }
+.avatar-stack i { width: 27px; height: 27px; border-color: var(--paper); font-size: 10px; }
+.hero-art {
+  height: 430px;
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 72% 22%, rgb(255 255 255 / 56%), transparent 8rem),
+    linear-gradient(150deg, #e8eee7 0%, #d4e1d5 48%, #b4cab9 100%);
+  box-shadow: 0 27px 65px rgb(34 69 54 / 13%);
+}
+.sun { top: 64px; right: 19%; width: 87px; height: 87px; background: linear-gradient(145deg, #efd5ad, #dfa876); box-shadow: 0 0 50px rgb(234 201 159 / 35%); }
+.mountain-back { border-right-width: 265px; border-bottom-color: #b7c7b6; border-left-width: 275px; }
+.mountain-mid { border-right-width: 300px; border-bottom-color: #91aa98; border-left-width: 300px; }
+.mountain-front { border-right-width: 285px; border-bottom-color: #5f806e; border-left-width: 255px; }
+.trail-card { right: 24px; bottom: 24px; padding: 15px 18px; border-radius: 12px; box-shadow: 0 10px 30px rgb(24 51 43 / 14%); }
+.trail-icon { width: 34px; height: 34px; }
+.trail-card strong { font-size: 12px; }
+.trail-card small { font-size: 11px; }
+.art-caption { bottom: 28px; left: 27px; }
+.status-strip {
+  width: min(1240px, calc(100% - 80px));
+  padding: 27px 30px;
+  border-color: #e3e9e3;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 82%);
+  box-shadow: 0 9px 30px rgb(23 43 40 / 4%);
+}
+.status-strip > div { gap: 15px; padding: 0 23px; }
+.strip-icon { width: 43px; height: 43px; border-radius: 13px; background: #edf3ed; font-size: 20px; }
+.status-strip strong { font-size: 13px; }
+.status-strip small { color: #829087; font-size: 11px; }
+.mountain-section { width: min(1240px, calc(100% - 80px)); margin: 112px auto 96px; }
+.section-heading { margin-bottom: 29px; }
+.section-heading h2, .callout h2 { font-size: 39px; letter-spacing: -1.4px; }
+.muted-copy { color: #7b8981; font-size: 12px; }
+.mountain-grid { gap: 21px; }
+.mountain-card, .hiker-mountain-card {
+  border-color: #e0e7e1;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 9px 27px rgb(23 43 40 / 4%);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.mountain-card:hover, .hiker-mountain-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-soft); }
+.card-illustration { height: 198px; }
+.mountain-card-1 .card-illustration { background: linear-gradient(145deg, #dfeadf, #b7cbbb); }
+.mountain-card-2 .card-illustration { background: linear-gradient(145deg, #eee6d6, #cbd4be); }
+.mountain-card-3 .card-illustration { background: linear-gradient(145deg, #e3e4dd, #b8c9c0); }
+.card-sun { width: 47px; height: 47px; background: #edc58e; box-shadow: 0 0 35px rgb(237 197 142 / 45%); }
+.card-peak { border-bottom-color: #8ea593; }
+.card-hill { background: #6b8a77; }
+.mountain-details { padding: 20px; }
+.mountain-details h3 { font-size: 15px; letter-spacing: -.2px; }
+.mountain-details p { color: #829087; font-size: 11px; }
+.elevation { color: #65786d; font-weight: 650; }
+.mountain-status { top: 15px; left: 15px; padding: 8px 11px; border-radius: 99px; box-shadow: 0 2px 8px rgb(23 43 40 / 6%); font-size: 10px; }
+.callout {
+  width: min(1240px, calc(100% - 80px));
+  min-height: 255px;
+  margin-bottom: 65px;
+  padding: 48px 58px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 80% 15%, rgb(132 170 139 / 22%), transparent 20rem),
+    linear-gradient(120deg, #193f35, #245644);
+  box-shadow: 0 20px 45px rgb(23 62 53 / 15%);
+}
+.callout h2 { font-size: 34px; line-height: 1.2; }
+.callout p { color: #d4dfd6; font-size: 13px; }
+.callout-mark { color: #ffffff09; }
+.site-footer { width: min(1240px, calc(100% - 80px)); min-height: 88px; color: #7d8983; font-size: 11px; }
+
+.auth-shell {
+  min-height: 100vh;
+  grid-template-columns: minmax(340px, .9fr) 1.1fr;
+  background: #fff;
+}
+.auth-aside {
+  min-height: 100vh;
+  padding: 48px clamp(32px, 5vw, 76px);
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 82% 78%, rgb(120 157 130 / 30%), transparent 20rem),
+    linear-gradient(145deg, #183d34, #214f40 64%, #2e604b);
+}
+.auth-aside::after {
+  width: 520px;
+  height: 520px;
+  position: absolute;
+  right: -250px;
+  bottom: -300px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 45px rgb(255 255 255 / 3%), 0 0 0 90px rgb(255 255 255 / 2%);
+  content: "";
+}
+.auth-aside .brand { position: relative; z-index: 1; color: white; }
+.auth-aside .brand-mark { background: rgb(255 255 255 / 13%); box-shadow: none; }
+.auth-aside-copy { position: relative; z-index: 1; }
+.auth-aside-copy .eyebrow { color: #c8d9cc; }
+.auth-aside-copy h1 { max-width: 450px; margin: 18px 0; font-size: clamp(39px, 4.5vw, 58px); letter-spacing: -2px; }
+.auth-aside-copy p { max-width: 390px; color: #d0ddd2; font-size: 14px; line-height: 1.8; }
+.auth-aside > span { position: relative; z-index: 1; color: #c1d0c4; font-size: 11px; }
+.auth-main { padding: 56px; }
+.auth-form { width: min(100%, 420px); }
+.auth-form > .eyebrow { display: block; margin-bottom: 11px; }
+.auth-form h2 { font-family: Georgia, "Times New Roman", serif; font-size: 37px; letter-spacing: -1.2px; }
+.auth-form > p { color: #718078; font-size: 13px; }
+.auth-form > p:first-of-type { margin-bottom: 30px; }
+.form-field { margin-bottom: 18px; gap: 8px; color: #44564e; font-size: 12px; font-weight: 650; }
+.form-field input, .form-field select, .form-field textarea, .hiker-form select, .hiker-form textarea,
+.hiker-checklist-form input, .hiker-checklist-form select, .mountain-search input {
+  min-height: 47px;
+  padding: 11px 13px;
+  border: 1px solid #dce5de;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.form-field input:hover, .form-field select:hover, .form-field textarea:hover,
+.hiker-form select:hover, .hiker-form textarea:hover, .hiker-checklist-form input:hover { border-color: #b7c8bb; }
+.form-field input::placeholder, .form-field textarea::placeholder { color: #9aa69f; }
+.auth-submit { min-height: 49px; margin-top: 7px; border-radius: 9px; }
+.auth-error { padding: 13px 15px; border: 1px solid #f1d8d2; border-radius: 9px; background: #fff4f1; color: #934c40; font-size: 12px; }
+.auth-switch { margin-top: 22px !important; color: #738078 !important; }
+.auth-switch a, .auth-switch button { color: var(--green); font-weight: 750; }
+.back-home { color: #75837b; font-size: 12px; }
+
+.dashboard-shell { min-height: 100vh; grid-template-columns: 264px minmax(0, 1fr); background: #f5f7f4; }
+.dashboard-sidebar {
+  min-height: 100vh;
+  padding: 29px 18px 23px;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  border-right: 1px solid #e2e8e3;
+  background: #fff;
+  gap: 28px;
+}
+.dashboard-sidebar > .brand { padding: 0 8px; }
+.hiker-account { padding: 17px 9px; border-color: #edf0ed; }
+.hiker-avatar { width: 39px; height: 39px; border: 2px solid white; background: linear-gradient(145deg, #e9f0e9, #d9e7dc); font-family: inherit; font-weight: 750; }
+.hiker-account strong { max-width: 155px; color: #31453c; font-size: 12px; }
+.dashboard-sidebar nav { gap: 4px; }
+.dashboard-sidebar nav a {
+  min-height: 43px;
+  padding: 0 12px;
+  border-radius: 9px;
+  color: #64746c;
+  font-size: 12px;
+  font-weight: 570;
+  transition: background .16s ease, color .16s ease;
+}
+.dashboard-sidebar nav a[aria-current="page"], .dashboard-sidebar nav a:hover { background: #edf4ee; color: #285a46; }
+.dashboard-sidebar nav a[aria-current="page"] { font-weight: 720; }
+.dashboard-sidebar nav a > span { color: #6e8776; }
+.dashboard-sidebar .sidebar-note { padding: 15px; border: 1px solid #e8eee8; border-radius: 11px; background: #f6f8f5; color: #697a70; line-height: 1.7; }
+.signout-button { padding: 9px 12px; border-radius: 8px; color: #6b7b73; font-weight: 650; transition: background .16s ease, color .16s ease; }
+.signout-button:hover { background: #fff3f0; color: #9b5048; }
+.dashboard-main { width: 100%; min-width: 0; max-width: 1440px; padding: 44px clamp(28px, 5vw, 76px) 72px; }
+.dashboard-topline { min-height: 40px; margin-bottom: 30px; }
+.dashboard-topline > span { color: #849088; font-size: 12px; }
+.dashboard-main > .eyebrow { display: inline-block; margin-top: 8px; }
+.dashboard-main h1 { margin: 12px 0 9px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(31px, 3vw, 42px); letter-spacing: -1.4px; }
+.dashboard-lede { max-width: 760px; margin: 0 0 29px; color: #728078; font-size: 13px; line-height: 1.7; }
+.dashboard-panel, .stat-card {
+  max-width: none;
+  padding: 25px;
+  border: 1px solid #e2e9e3;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgb(23 43 40 / 3%);
+}
+.dashboard-panel h2 { font-size: 18px; letter-spacing: -.35px; }
+.dashboard-panel p { color: #697a71; font-size: 12px; line-height: 1.8; }
+.dashboard-stats { max-width: none; margin: 24px 0; gap: 15px; }
+.stat-card { min-height: 119px; padding: 20px; }
+.stat-card small { color: #79877f; font-size: 11px; }
+.stat-card strong { margin-top: 18px; font-size: 27px; letter-spacing: -.8px; }
+.inline-form { align-items: center; gap: 12px; }
+.inline-form input { min-height: 46px; border: 1px solid #dce5de; border-radius: 9px; background: #fff; }
+.hiker-page-stack { gap: 19px; }
+.hiker-page-stack .dashboard-panel { max-width: none; }
+.hiker-panel-heading { margin-bottom: 20px; }
+.hiker-panel-heading h2 { font-size: 20px; letter-spacing: -.45px; }
+.hiker-panel-heading > a, .hiker-home-heading > a { color: #2b684f; font-size: 12px; }
+.hiker-count { padding: 7px 10px; border-radius: 99px; background: #f2f5f1; color: #6c7a72; font-size: 11px; font-weight: 650; }
+.hiker-hero-card {
+  min-height: 255px;
+  margin: 24px 0 17px;
+  padding: 34px 38px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse at 78% 17%, rgb(135 171 140 / 25%), transparent 18rem),
+    linear-gradient(115deg, #193f35, #245b45);
+  box-shadow: 0 14px 35px rgb(29 74 56 / 15%);
+}
+.hiker-hero-card h2 { font-size: clamp(25px, 3vw, 36px); letter-spacing: -.8px; }
+.hiker-hero-card p { color: #d3ded4; font-size: 13px; }
+.hiker-hero-illustration { right: 40px; width: 260px; height: 205px; }
+.hiker-hero-illustration span { border-bottom-color: #769782; }
+.hiker-hero-illustration i { border-bottom-color: #9eb1a0; }
+.hiker-hero-illustration b { border-bottom-color: #c1c5a9; }
+.hiker-shortcuts { margin: 0 0 38px; gap: 14px; }
+.hiker-shortcuts a { min-height: 129px; padding: 19px; border-color: #e2e9e3; border-radius: 12px; box-shadow: 0 5px 18px rgb(23 43 40 / 3%); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.hiker-shortcuts a:hover { transform: translateY(-3px); border-color: #bed0c1; background: #fff; box-shadow: var(--shadow-soft); }
+.hiker-shortcuts a > span { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 11px; background: #eef4ee; color: #2c674e; font-size: 18px; }
+.hiker-shortcuts strong { font-size: 13px; }
+.hiker-shortcuts small { color: #7b8982; font-size: 11px; }
+.hiker-home-heading { margin: 16px 0; }
+.hiker-home-heading h2 { font-size: 25px; letter-spacing: -.7px; }
+.hiker-info-card { gap: 16px; }
+.hiker-info-icon { width: 36px; height: 36px; border: 1px solid #f1e3cd; background: #fcf5e9; }
+.hiker-info-card strong { font-size: 13px; }
+.hiker-info-card p { margin: 7px 0 10px; }
+.hiker-info-card a { color: #2b684f; font-size: 12px; }
+.hiker-recent-trips { margin-top: 19px; }
+.hiker-list-row { min-height: 74px; gap: 14px; border-color: #edf0ed; }
+.hiker-list-icon { width: 39px; height: 39px; background: #eef4ee; }
+.hiker-list-content strong { font-size: 13px; }
+.hiker-list-content span { font-size: 11px; }
+.hiker-badge { padding: 7px 10px; background: #edf3ed; color: #4e6956; font-size: 10px; }
+.hiker-empty { min-height: 132px; padding: 20px; border: 1px dashed #d7e1d8; border-radius: 10px; background: #fbfcfa; }
+.hiker-empty strong { font-size: 13px; }
+.hiker-empty span { color: #7c8982; font-size: 12px; }
+.hiker-disclaimer { color: #7a8880; font-size: 11px; }
+.hiker-form { margin-top: 22px; }
+.hiker-form .form-field { margin-bottom: 18px; }
+.hiker-form-row { gap: 17px; }
+.hiker-form .button { min-height: 46px; }
+.hiker-success { padding: 13px 15px; border: 1px solid #d8e9da; border-radius: 9px; background: #eff8ef; color: #426f4c; font-size: 12px; }
+.hiker-checklist-form { grid-template-columns: minmax(180px, 1fr) 200px auto; gap: 14px; }
+.hiker-checklist-form .button { min-height: 47px; border-radius: 9px; }
+.hiker-checklist-group { margin-top: 25px; }
+.hiker-checklist-group h3 { padding-bottom: 11px; color: #485c50; font-size: 12px; letter-spacing: .2px; }
+.hiker-checklist-item { min-height: 51px; border-bottom-color: #edf1ed; }
+.hiker-checklist-item label { gap: 12px; font-size: 12px; }
+.hiker-checklist-item input { width: 16px; height: 16px; accent-color: var(--green); }
+.hiker-delete-button { padding: 7px 10px; border-radius: 7px; font-size: 11px; }
+.hiker-delete-button:hover { background: #fff0ed; }
+.hiker-document-action { padding: 8px 11px; border-radius: 7px; font-size: 11px; }
+.hiker-document-action:hover { background: #e1ece3; }
+.hiker-document-delete:hover { background: #f4dede; }
+.hiker-security-section { margin-top: 30px; padding-top: 24px; border-color: #e6ece7; }
+.hiker-security-section h3 { font-size: 15px; }
+.hiker-security-section p { font-size: 12px; }
+.hiker-security-section .button { min-height: 43px; }
+.hiker-mountain-grid { gap: 18px; }
+.hiker-mountain-art { height: 165px; }
+.hiker-mountain-body { padding: 20px; }
+.hiker-mountain-body h3 { font-size: 17px; }
+.hiker-mountain-body p { color: #75837b; font-size: 11px; }
+.hiker-mountain-body .button { min-height: 42px; margin-top: 12px; font-size: 12px; }
+.mountain-search { margin-top: 18px; }
+.hiker-announcement h2 { font-family: Georgia, "Times New Roman", serif; font-size: 23px; letter-spacing: -.6px; }
+.hiker-announcement small { color: #7b8982; font-size: 11px; }
+.hiker-safety-note { margin-top: 20px; }
+
+@media (min-width: 761px) and (max-width: 1050px) {
+  .hero { grid-template-columns: 1.08fr .92fr; gap: 30px; }
+  .hero h1 { font-size: clamp(40px, 4.8vw, 51px); letter-spacing: -2px; }
+  .hero-art { height: 350px; }
+  .dashboard-shell { grid-template-columns: 230px minmax(0, 1fr); }
+  .dashboard-sidebar { padding-right: 14px; padding-left: 14px; }
+  .dashboard-main { padding-right: 32px; padding-left: 32px; }
+  .hiker-shortcuts { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 760px) {
+  body { background: var(--paper); }
+  .site-header, .hero, .status-strip, .mountain-section, .callout, .site-footer { width: min(100% - 36px, 560px); }
+  .site-header { height: 70px; }
+  .brand { font-size: 18px; }
+  .brand-mark { width: 33px; height: 33px; }
+  .hero { min-height: 0; padding: 43px 0 34px; grid-template-columns: 1fr; gap: 26px; }
+  .hero-copy { padding: 0; }
+  .hero h1 { margin-top: 22px; font-size: clamp(34px, 9.4vw, 46px); letter-spacing: -1.6px; }
+  .hero-copy > p { font-size: 14px; }
+  .hero-actions { align-items: flex-start; flex-direction: column; gap: 13px; }
+  .hero-note { margin-top: 27px; }
+  .hero-art { height: 280px; border-radius: 17px; }
+  .sun { top: 40px; width: 60px; height: 60px; }
+  .mountain-back { border-right-width: 160px; border-left-width: 160px; }
+  .mountain-mid { border-right-width: 180px; border-left-width: 180px; }
+  .mountain-front { left: 8%; border-right-width: 170px; border-left-width: 160px; }
+  .trail-card { right: 12px; bottom: 13px; padding: 11px; }
+  .art-caption { bottom: 19px; left: 12px; font-size: 8px; }
+  .status-strip { padding: 9px 17px; border-radius: 12px; }
+  .status-strip > div, .status-strip > div:first-child, .status-strip > div:last-child { padding: 14px 0; }
+  .mountain-section { margin: 66px auto; }
+  .section-heading { margin-bottom: 20px; }
+  .section-heading h2, .callout h2 { font-size: 32px; }
+  .mountain-grid { grid-template-columns: 1fr; gap: 14px; }
+  .card-illustration { height: 175px; }
+  .callout { min-height: 285px; margin-bottom: 40px; padding: 28px; border-radius: 15px; }
+  .callout h2 { font-size: 29px; }
+  .site-footer { padding: 18px 0; }
+  .auth-shell { min-height: 100vh; grid-template-columns: 1fr; }
+  .auth-aside { min-height: 0; padding: 22px 24px 28px; }
+  .auth-aside-copy { max-width: 500px; margin-top: 32px; }
+  .auth-aside-copy h1 { margin: 13px 0; font-size: 34px; }
+  .auth-aside-copy p { display: block; margin: 0; font-size: 12px; }
+  .auth-aside > span { display: none; }
+  .auth-main { padding: 35px 24px 48px; }
+  .auth-form h2 { font-size: 33px; }
+  .dashboard-shell { grid-template-columns: 1fr; }
+  .dashboard-sidebar {
+    display: grid;
+    grid-template-areas:
+      "brand signout"
+      "nav nav";
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: auto;
+    padding: 13px 18px 10px;
+    position: sticky;
+    z-index: 5;
+    top: 0;
+    gap: 9px;
+    border-right: 0;
+    border-bottom: 1px solid #e2e8e3;
+    box-shadow: 0 4px 14px rgb(23 43 40 / 4%);
+  }
+  .dashboard-sidebar > .brand { grid-area: brand; padding: 0 2px; }
+  .dashboard-sidebar .hiker-account, .dashboard-sidebar .sidebar-note { display: none; }
+  .dashboard-sidebar nav { grid-area: nav; display: flex; min-width: 0; max-width: 100%; gap: 3px; overflow-x: auto; scrollbar-width: none; }
+  .dashboard-sidebar nav::-webkit-scrollbar { display: none; }
+  .dashboard-sidebar nav a { min-height: 38px; padding: 0 11px; white-space: nowrap; font-size: 11px; }
+  .dashboard-sidebar nav a > span { display: none; }
+  .dashboard-sidebar > .signout-button { grid-area: signout; display: inline-flex; align-items: center; justify-self: end; min-height: 36px; padding: 0 12px; border: 1px solid #e5ebe6; background: #fff; font-size: 11px; }
+  .dashboard-main { min-width: 0; padding: 27px 18px 48px; }
+  .dashboard-topline { min-height: 0; margin-bottom: 23px; align-items: flex-start; flex-direction: column; gap: 12px; }
+  .dashboard-main h1 { font-size: 32px; }
+  .dashboard-lede { margin-bottom: 23px; }
+  .dashboard-panel, .stat-card { padding: 19px; border-radius: 12px; }
+  .dashboard-stats { grid-template-columns: 1fr; gap: 11px; }
+  .inline-form { align-items: stretch; flex-direction: column; }
+  .hiker-shortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .hiker-shortcuts a { min-height: 118px; padding: 14px; }
+  .hiker-hero-card { min-height: 255px; padding: 24px; border-radius: 14px; }
+  .hiker-hero-illustration { right: -65px; opacity: .3; }
+  .hiker-panel-heading { align-items: flex-start; }
+  .hiker-list-row { flex-wrap: wrap; gap: 9px; padding: 13px 0; }
+  .hiker-list-content { flex-basis: calc(100% - 55px); }
+  .hiker-list-row > .hiker-badge { margin-left: 49px; }
+  .hiker-list-row > .hiker-document-action { margin-left: 2px; }
+  .hiker-form-row, .hiker-form-row:has(input[type="number"]) { grid-template-columns: 1fr; gap: 0; }
+  .hiker-checklist-form { grid-template-columns: 1fr; gap: 12px; }
+  .hiker-checklist-form .form-field { margin-bottom: 0; }
+  .hiker-mountain-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+.auth-login-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+  place-items: center;
+  padding: 32px 20px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgb(221 234 221 / 65%), transparent 34rem),
+    #f5f7f3;
+}
+.auth-login-shell > .auth-aside { display: none; }
+.auth-login-shell > .auth-main {
+  width: 100%;
+  padding: 0;
+}
+.auth-login-card {
+  width: min(100%, 430px);
+  padding: 38px;
+  border: 1px solid #e4ebe4;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgb(34 62 47 / 11%);
+}
+.auth-login-brand {
+  margin-bottom: 35px;
+}
+.auth-login-card > .eyebrow {
+  margin-bottom: 10px;
+}
+.auth-login-card h2 {
+  margin-bottom: 9px;
+  font-size: 35px;
+}
+.auth-login-card > p:first-of-type {
+  margin-bottom: 27px;
+}
+.auth-login-card .form-field {
+  margin-bottom: 18px;
+}
+.auth-login-card .auth-submit {
+  margin-top: 6px;
+}
+.auth-login-card .auth-switch {
+  margin-bottom: 12px;
+}
+.auth-login-card .back-home {
+  display: block;
+  margin-top: 0;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .auth-login-shell {
+    padding: 20px 16px;
+  }
+  .auth-login-card {
+    padding: 24px 20px;
+    border-radius: 15px;
+  }
+  .auth-login-brand {
+    margin-bottom: 22px;
+  }
+  .auth-login-card h2 {
+    font-size: 29px;
+  }
+  .auth-login-card > p:first-of-type {
+    margin-bottom: 21px;
+  }
+  .auth-login-card .form-field {
+    margin-bottom: 14px;
+  }
+  .auth-login-card .form-field input {
+    min-height: 44px;
+  }
+  .auth-login-card .auth-submit {
+    min-height: 45px;
+  }
+  .auth-login-card .auth-switch {
+    margin-top: 17px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body { font-size: 13px; }
+  .eyebrow { font-size: 9px; letter-spacing: 1.4px; }
+  .button { min-height: 43px; padding-right: 17px; padding-left: 17px; font-size: 12px; }
+
+  .site-header { height: 64px; }
+  .hero { padding-top: 32px; padding-bottom: 28px; gap: 20px; }
+  .hero h1 { margin-bottom: 14px; font-size: clamp(32px, 8.8vw, 40px); line-height: 1.06; }
+  .hero-copy > p { margin-top: 0; font-size: 13px; line-height: 1.7; }
+  .hero-actions { margin-top: 21px; gap: 8px; }
+  .hero-note { margin-top: 20px; font-size: 11px; }
+  .hero-art { height: 225px; }
+  .status-strip strong { font-size: 12px; }
+  .status-strip small { font-size: 10px; }
+  .mountain-section { margin-top: 48px; margin-bottom: 48px; }
+  .section-heading h2, .callout h2 { font-size: 28px; }
+  .card-illustration { height: 145px; }
+  .mountain-details { padding: 15px 16px; }
+  .callout { min-height: 240px; padding: 22px; gap: 17px; }
+  .site-footer { min-height: 70px; font-size: 10px; }
+
+  .dashboard-sidebar { padding: 10px 14px 8px; gap: 7px; }
+  .dashboard-sidebar nav { gap: 2px; }
+  .dashboard-sidebar nav a { min-height: 36px; padding: 0 9px; font-size: 10px; }
+  .dashboard-sidebar > .signout-button { min-height: 34px; }
+  .dashboard-main { padding: 18px 14px 32px; }
+  .dashboard-topline { margin-bottom: 14px; gap: 8px; }
+  .dashboard-topline > span { font-size: 11px; }
+  .dashboard-main h1 { margin-top: 8px; margin-bottom: 5px; font-size: 25px; letter-spacing: -.75px; }
+  .dashboard-lede { margin-bottom: 15px; font-size: 12px; line-height: 1.55; }
+  .dashboard-panel, .stat-card { padding: 14px; border-radius: 10px; }
+  .dashboard-panel h2 { margin-bottom: 5px; font-size: 15px; }
+  .dashboard-panel p { margin-top: 7px; margin-bottom: 8px; font-size: 11px; line-height: 1.6; }
+  .dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 14px 0; gap: 8px; }
+  .stat-card { min-height: 78px; padding: 13px; }
+  .stat-card strong { margin-top: 9px; font-size: 20px; }
+  .stat-card small { font-size: 10px; line-height: 1.4; }
+  .hiker-page-stack { gap: 11px; }
+  .hiker-panel-heading { margin-bottom: 12px; gap: 8px; }
+  .hiker-panel-heading h2 { font-size: 16px; }
+  .hiker-count { padding: 6px 8px; font-size: 10px; }
+  .hiker-hero-card { min-height: 0; margin: 12px 0 9px; padding: 14px; border-radius: 10px; }
+  .hiker-hero-card h2 { max-width: 250px; margin: 6px 0 4px; font-size: 18px; line-height: 1.2; }
+  .hiker-hero-card p { max-width: 260px; margin-bottom: 6px; font-size: 10px; line-height: 1.45; }
+  .hiker-hero-card .button { min-height: 38px; margin-top: 6px; padding: 0 12px; font-size: 11px; }
+  .hiker-hero-illustration { width: 140px; height: 112px; right: -42px; opacity: .18; }
+  .hiker-shortcuts { margin-bottom: 20px; gap: 7px; }
+  .hiker-shortcuts a { min-height: 88px; padding: 9px; border-radius: 9px; }
+  .hiker-shortcuts a > span { width: 27px; height: 27px; margin-bottom: 5px; border-radius: 8px; font-size: 15px; }
+  .hiker-shortcuts strong { font-size: 11px; }
+  .hiker-shortcuts small { margin-top: 2px; font-size: 10px; line-height: 1.3; }
+  .hiker-home-heading { margin: 8px 0 10px; }
+  .hiker-home-heading h2 { font-size: 19px; }
+  .hiker-info-card { gap: 11px; }
+  .hiker-info-icon { width: 30px; height: 30px; }
+  .hiker-info-card strong { font-size: 11px; line-height: 1.5; }
+  .hiker-info-card p { margin: 5px 0 7px; }
+  .hiker-info-card a, .hiker-panel-heading > a, .hiker-home-heading > a { font-size: 10px; }
+  .hiker-list-row { min-height: 52px; gap: 6px; padding: 7px 0; }
+  .hiker-list-icon { width: 29px; height: 29px; font-size: 14px; }
+  .hiker-list-content { flex-basis: calc(100% - 39px); }
+  .hiker-list-content strong { font-size: 11px; }
+  .hiker-list-content span { margin-top: 3px; font-size: 10px; }
+  .hiker-list-row > .hiker-badge { margin-left: 35px; }
+  .hiker-badge { padding: 5px 8px; font-size: 10px; }
+  .hiker-empty { min-height: 82px; padding: 12px; gap: 4px; }
+  .hiker-empty strong { font-size: 12px; }
+  .hiker-empty span { font-size: 11px; }
+  .hiker-form { margin-top: 15px; }
+  .hiker-form .form-field { margin-bottom: 13px; }
+  .form-field { margin-bottom: 14px; gap: 6px; font-size: 11px; }
+  .hiker-form .form-field input, .hiker-form select, .hiker-form textarea,
+  .hiker-checklist-form input, .hiker-checklist-form select, .mountain-search input {
+    min-height: 42px;
+    padding: 9px 11px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+  .hiker-form textarea { min-height: 78px; }
+  .hiker-form h3 { margin: 11px 0; font-size: 12px; }
+  .hiker-form .button, .hiker-checklist-form .button { min-height: 42px; }
+  .hiker-checklist-group { margin-top: 16px; }
+  .hiker-checklist-group h3 { padding-bottom: 8px; font-size: 11px; }
+  .hiker-checklist-item { min-height: 41px; }
+  .hiker-checklist-item label { gap: 8px; font-size: 11px; }
+  .hiker-checklist-item input { width: 15px; height: 15px; }
+  .hiker-delete-button, .hiker-document-action { padding: 6px 8px; font-size: 10px; }
+  .hiker-mountain-art { height: 135px; }
+  .hiker-mountain-body { padding: 15px; }
+  .hiker-mountain-body h3 { margin-top: 8px; font-size: 15px; }
+  .hiker-mountain-body p { font-size: 10px; }
+  .hiker-mountain-body .button { min-height: 38px; }
+  .hiker-announcement h2 { font-size: 19px; }
+  .hiker-announcement small { font-size: 10px; }
+  .dashboard-panel table { display: block; width: 100%; overflow-x: auto; white-space: nowrap; }
+  .dashboard-panel th, .dashboard-panel td { padding: 7px 8px; font-size: 10px; }
+  .dashboard-panel table { border-collapse: collapse; }
+  .dashboard-panel th { color: #617269; font-weight: 700; }
+}
+
+@media (min-width: 381px) and (max-width: 760px) {
+  .dashboard-topline { align-items: center; flex-direction: row; justify-content: space-between; }
+  .dashboard-topline > .button { min-height: 38px; padding: 0 10px; font-size: 10px; white-space: nowrap; }
+}
+
+@media (max-width: 380px) {
+  .dashboard-main { padding-right: 12px; padding-left: 12px; }
+  .dashboard-sidebar { padding-right: 12px; padding-left: 12px; }
+  .hiker-shortcuts a { min-height: 84px; padding: 8px; }
+  .hiker-hero-card { padding: 14px; }
+  .hiker-hero-card h2 { max-width: 215px; font-size: 17px; }
+  .hiker-hero-card p { max-width: 230px; }
+  .dashboard-stats { grid-template-columns: 1fr; }
+  .auth-login-shell { padding-right: 12px; padding-left: 12px; }
+  .auth-login-card { padding: 22px 18px; }
+}
+
+.dashboard-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+  margin-top: 20px;
+}
+.dashboard-form-grid .form-field { min-width: 0; }
+.dashboard-form-grid > button { justify-self: start; align-self: start; }
+.staff-list { display: grid; gap: 10px; margin-top: 24px; }
+.staff-list h3 { margin: 0 0 3px; color: #31453c; font-size: 14px; }
+.staff-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 14px;
+  border: 1px solid #e5ebe6;
+  border-radius: 9px;
+  background: #fff;
+}
+.staff-card > div { display: grid; min-width: 0; gap: 4px; }
+.staff-card strong { color: #31453c; font-size: 12px; }
+.staff-card span, .staff-card small { color: #76847b; font-size: 11px; }
+.staff-card small { overflow-wrap: anywhere; }
+.staff-card .button { flex: 0 0 auto; min-height: 36px; padding: 0 11px; font-size: 10px; }
+.role-action-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.role-action-list span { padding: 7px 10px; border-radius: 99px; background: #edf4ee; color: #345e49; font-size: 11px; }
+.operations-stack { display: grid; gap: 16px; margin-top: 16px; }
+.staff-section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.staff-section-heading .button { flex: 0 0 auto; min-height: 35px; padding: 0 10px; font-size: 10px; }
+.operation-card { align-items: flex-start; }
+.operation-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.operation-actions .button { min-height: 34px; padding: 0 9px; font-size: 10px; }
+
+@media (max-width: 760px) {
+  .dashboard-form-grid { grid-template-columns: 1fr; gap: 0; }
+  .staff-card { align-items: flex-start; }
+  .staff-card .button { margin-top: 2px; }
+  .role-action-list { gap: 6px; }
+  .role-action-list span { font-size: 10px; }
+  .staff-section-heading { flex-direction: column; }
+  .operation-card { flex-direction: column; }
+  .operation-actions { justify-content: flex-start; }
+}
+
+.admin-dashboard-shell { display: grid; grid-template-columns: 252px minmax(0, 1fr); background: #f4f6f3; }
+.admin-dashboard-shell > .admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 0;
+  padding: 28px 17px 18px;
+  gap: 27px;
+  border-right-color: #e7ebe6;
+  background: #fff;
+}
+.admin-dashboard-shell .admin-sidebar > .brand { padding: 0 7px; }
+.admin-workspace-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -7px 8px -11px;
+  color: #9aa59d;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 1.2px;
+}
+.admin-workspace-dot, .admin-welcome-meta i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #66a67d;
+  box-shadow: 0 0 0 3px #eaf4ec;
+}
+.admin-dashboard-shell .admin-sidebar .admin-menu { display: grid; gap: 5px; }
+.admin-menu-caption { padding: 0 9px 8px; color: #a0aaa3; font-size: 9px; font-weight: 750; letter-spacing: 1px; }
+.admin-dashboard-shell .admin-sidebar .admin-menu-link {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 12px;
+  align-items: center;
+  width: 100%;
+  min-height: 55px;
+  padding: 7px 8px;
+  gap: 9px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #516158;
+  text-decoration: none;
+}
+.admin-dashboard-shell .admin-sidebar .admin-menu-link:hover,
+.admin-dashboard-shell .admin-sidebar .admin-menu-link:focus-visible,
+.admin-dashboard-shell .admin-sidebar .admin-menu-link[aria-current="page"] {
+  border-color: #e2ebe3;
+  background: #f5f8f4;
+  color: #275b45;
+}
+.admin-dashboard-shell .admin-sidebar .admin-menu-link[aria-current="page"] {
+  border-color: #dce8dd;
+  background: #eef5ef;
+}
+.admin-menu-icon {
+  width: 32px !important;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  align-self: center;
+  border: 1px solid #e8eee8;
+  border-radius: 9px;
+  background: #f7f9f6;
+  color: #728379 !important;
+  font-size: 9px !important;
+  font-weight: 750;
+  letter-spacing: .2px;
+}
+.admin-dashboard-shell .admin-menu-link > .admin-menu-icon { width: 32px; }
+.admin-dashboard-shell .admin-menu-link > .admin-menu-copy {
+  display: grid;
+  align-content: center;
+  width: auto;
+  min-width: 0;
+  gap: 3px;
+  text-align: left;
+}
+.admin-dashboard-shell .admin-menu-copy strong { overflow: hidden; width: auto; color: #35473d; font-size: 11px; font-weight: 700; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+.admin-dashboard-shell .admin-menu-copy small { overflow: hidden; width: auto; color: #929e96; font-size: 9px; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+.admin-dashboard-shell .admin-menu-link > .admin-menu-arrow { width: auto; align-self: center; color: #a6b1aa; font-size: 17px; text-align: center; }
+.admin-sidebar-bottom { display: grid; gap: 14px; margin-top: auto; }
+.admin-public-link { display: flex; align-items: center; gap: 9px; padding: 10px 8px; color: #62746a; font-size: 11px; text-decoration: none; }
+.admin-public-link > span { width: 25px; height: 25px; display: grid; place-items: center; border-radius: 8px; background: #f2f5f1; color: #426c53; }
+.admin-account-card { display: flex; align-items: center; min-width: 0; gap: 10px; padding: 12px 9px 2px; border-top: 1px solid #edf0ec; }
+.admin-account-avatar { width: 34px; height: 34px; display: grid; flex: 0 0 auto; place-items: center; border: 1px solid #dce9df; border-radius: 50%; background: #eef5ef; color: #2e654b; font-size: 10px; font-weight: 750; }
+.admin-account-copy { display: grid; min-width: 0; gap: 3px; }
+.admin-account-copy strong { overflow: hidden; color: #36483e; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.admin-account-copy small { color: #87938b; font-size: 9px; }
+.admin-dashboard-shell > .admin-dashboard-main { width: 100%; max-width: none; min-width: 0; padding: 26px clamp(24px, 4vw, 56px) 60px; }
+.admin-topbar { display: flex; align-items: center; justify-content: space-between; min-height: 45px; margin-bottom: 23px; }
+.admin-breadcrumb { display: flex; align-items: center; gap: 9px; color: #9aa49d; font-size: 11px; }
+.admin-breadcrumb strong { color: #506257; font-weight: 650; }
+.admin-topbar-actions { display: flex; align-items: center; gap: 14px; }
+.admin-role-badge { padding: 7px 10px; border: 1px solid #e0e9e1; border-radius: 99px; background: #fff; color: #50725c; font-size: 10px; font-weight: 700; }
+.admin-topbar .signout-button { padding: 8px 11px; border: 1px solid #e4e9e4; background: #fff; font-size: 10px; }
+.admin-content-stack { display: grid; gap: 25px; }
+.admin-welcome {
+  min-height: 202px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  padding: 29px 35px;
+  border: 1px solid #285c48;
+  border-radius: 15px;
+  background:
+    radial-gradient(ellipse at 85% 15%, rgb(149 184 144 / 20%), transparent 19rem),
+    linear-gradient(115deg, #183e34, #265944);
+  color: white;
+  box-shadow: 0 12px 28px rgb(24 62 52 / 10%);
+  scroll-margin-top: 22px;
+}
+.admin-welcome-copy { position: relative; z-index: 1; }
+.admin-kicker { color: #82978a; font-size: 9px; font-weight: 750; letter-spacing: 1.2px; }
+.admin-welcome .admin-kicker { color: #bbd1c0; }
+.admin-welcome h1 { margin: 12px 0 7px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(27px, 3vw, 37px); font-weight: 500; letter-spacing: -.8px; }
+.admin-welcome p { max-width: 550px; margin: 0; color: #d3e0d6; font-size: 12px; line-height: 1.7; }
+.admin-welcome-meta { display: flex; align-items: center; gap: 19px; margin-top: 19px; color: #d1dfd5; font-size: 10px; }
+.admin-welcome-meta > span { display: flex; align-items: center; gap: 8px; }
+.admin-welcome-meta i { width: 6px; height: 6px; background: #91c79a; box-shadow: 0 0 0 3px rgb(145 199 154 / 17%); }
+.admin-welcome-mark { width: 170px; height: 170px; display: grid; flex: 0 0 auto; place-items: center; position: relative; margin-right: 2%; color: rgb(255 255 255 / 86%); }
+.admin-mark-ring { position: absolute; border: 1px solid rgb(255 255 255 / 12%); border-radius: 50%; }
+.admin-mark-ring-one { width: 145px; height: 145px; }
+.admin-mark-ring-two { width: 105px; height: 105px; }
+.admin-mark-letter { width: 64px; height: 64px; display: grid; place-items: center; border: 1px solid rgb(255 255 255 / 20%); border-radius: 20px; background: rgb(255 255 255 / 9%); font-family: Georgia, "Times New Roman", serif; font-size: 34px; }
+.admin-quick-section { display: grid; gap: 14px; }
+.admin-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; }
+.admin-section-heading h2 { margin: 5px 0 0; color: #283d32; font-size: 19px; letter-spacing: -.4px; }
+.admin-section-count { padding-bottom: 3px; color: #8a968e; font-size: 10px; }
+.admin-quick-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.admin-quick-card {
+  min-height: 116px;
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  position: relative;
+  padding: 14px;
+  border: 1px solid #e4eae4;
+  border-radius: 11px;
+  background: #fff;
+  color: #34483c;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.admin-quick-card:hover { transform: translateY(-2px); border-color: #cbdacd; box-shadow: 0 9px 20px rgb(30 58 43 / 6%); }
+.admin-quick-card:focus-visible { outline: 3px solid #9cbea4; outline-offset: 2px; }
+.admin-quick-icon { width: 29px; height: 29px; display: grid; place-items: center; margin-bottom: 11px; border-radius: 9px; background: #edf4ee; color: #35664c; font-size: 8px; font-weight: 750; }
+.admin-quick-card strong { font-size: 11px; }
+.admin-quick-card small { margin-top: 4px; color: #8a968e; font-size: 9px; }
+.admin-quick-arrow { position: absolute; top: 15px; right: 15px; color: #9eaaa1; font-size: 12px; }
+.admin-operation-panel { scroll-margin-top: 22px; }
+.admin-section-view { display: grid; align-content: start; gap: 17px; }
+.admin-page-heading { display: grid; gap: 6px; margin: 7px 0 5px; }
+.admin-page-heading h1 { margin: 0; color: #263b31; font-family: Georgia, "Times New Roman", serif; font-size: clamp(29px, 3vw, 37px); font-weight: 500; letter-spacing: -.8px; }
+.admin-page-heading p { margin: 0; color: #78867e; font-size: 12px; }
+.admin-kpi-section { display: grid; gap: 13px; }
+.admin-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.admin-kpi-card {
+  min-height: 131px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+  padding: 16px;
+  border: 1px solid #e5eae5;
+  border-radius: 12px;
+  background: #fff;
+}
+.admin-kpi-label { color: #748179; font-size: 10px; font-weight: 650; }
+.admin-kpi-card strong { margin-top: 13px; color: #263b31; font-size: 29px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+.admin-kpi-card small { margin-top: 8px; color: #919b94; font-size: 9px; line-height: 1.5; }
+.admin-kpi-mark { width: 58px; height: 58px; position: absolute; top: -23px; right: -18px; border: 10px solid currentColor; border-radius: 50%; opacity: .08; }
+.admin-kpi-green { color: #39845b; }
+.admin-kpi-amber { color: #b17a24; }
+.admin-kpi-blue { color: #477ba1; }
+.admin-kpi-violet { color: #7e6ca2; }
+.admin-kpi-slate { color: #687a70; }
+.admin-summary-error, .admin-summary-empty {
+  display: grid;
+  gap: 5px;
+  padding: 16px;
+  border: 1px solid #eadfca;
+  border-radius: 10px;
+  background: #fffaf0;
+  color: #766341;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.admin-summary-error strong { color: #6e5730; font-size: 12px; }
+.admin-summary-error span { overflow-wrap: anywhere; }
+.admin-summary-empty { border-color: #e5eae5; background: #fff; color: #77857c; }
+.admin-footer { display: flex; justify-content: space-between; gap: 12px; padding: 3px 2px 0; color: #9aa49d; font-size: 9px; }
+
+@media (max-width: 1050px) {
+  .admin-quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .admin-dashboard-shell { grid-template-columns: minmax(0, 1fr); }
+  .admin-dashboard-shell > .admin-sidebar {
+    display: grid;
+    grid-template-areas: "brand signout" "nav nav";
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: auto;
+    position: sticky;
+    z-index: 5;
+    top: 0;
+    gap: 9px;
+    padding: 13px 18px 10px;
+    border-right: 0;
+    border-bottom: 1px solid #e7ebe6;
+    box-shadow: 0 4px 14px rgb(23 43 40 / 4%);
+  }
+  .admin-dashboard-shell .admin-sidebar > .brand { grid-area: brand; }
+  .admin-dashboard-shell .admin-sidebar .admin-workspace-label,
+  .admin-dashboard-shell .admin-menu-caption { display: none; }
+  .admin-dashboard-shell .admin-sidebar .admin-menu {
+    grid-area: nav;
+    display: flex;
+    min-width: 0;
+    max-width: 100%;
+    gap: 5px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .admin-dashboard-shell .admin-sidebar .admin-menu::-webkit-scrollbar { display: none; }
+  .admin-dashboard-shell .admin-sidebar .admin-menu-link {
+    min-height: 39px;
+    display: block;
+    width: auto;
+    flex: 0 0 auto;
+    padding: 0 11px;
+    border: 1px solid #e7ece7;
+    border-radius: 8px;
+    background: #fff;
+  }
+  .admin-dashboard-shell .admin-menu-icon,
+  .admin-dashboard-shell .admin-menu-arrow,
+  .admin-dashboard-shell .admin-menu-copy small { display: none; }
+  .admin-dashboard-shell .admin-menu-copy { display: block; width: auto; }
+  .admin-dashboard-shell .admin-menu-copy strong { width: auto; line-height: 37px; font-size: 10px; }
+  .admin-sidebar-bottom { grid-area: signout; display: flex; margin: 0; }
+  .admin-sidebar-bottom .admin-account-card { display: none; }
+  .admin-sidebar-bottom .admin-public-link { min-height: 36px; padding: 0 2px; font-size: 0; }
+  .admin-public-link > span { width: 30px; height: 30px; border: 1px solid #e5ebe6; background: #fff; font-size: 14px; }
+  .admin-dashboard-shell > .admin-dashboard-main { padding: 17px 18px 35px; }
+  .admin-topbar { min-height: 34px; margin-bottom: 17px; }
+  .admin-breadcrumb { font-size: 10px; }
+  .admin-topbar-actions { gap: 7px; }
+  .admin-role-badge { padding: 6px 8px; font-size: 9px; }
+  .admin-topbar .signout-button { min-height: 32px; padding: 0 9px; font-size: 9px; }
+  .admin-content-stack { gap: 19px; }
+  .admin-welcome { min-height: 172px; padding: 23px 20px; border-radius: 12px; }
+  .admin-welcome h1 { max-width: 245px; font-size: 27px; }
+  .admin-welcome p { max-width: 390px; font-size: 11px; }
+  .admin-welcome-meta { gap: 13px; margin-top: 14px; font-size: 9px; }
+  .admin-welcome-mark { width: 92px; height: 120px; margin-right: -20px; opacity: .65; }
+  .admin-mark-ring-one { width: 105px; height: 105px; }
+  .admin-mark-ring-two { width: 74px; height: 74px; }
+  .admin-mark-letter { width: 47px; height: 47px; border-radius: 15px; font-size: 26px; }
+  .admin-quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .admin-quick-card { min-height: 102px; padding: 12px; }
+  .admin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .admin-kpi-card { min-height: 116px; padding: 13px; }
+  .admin-kpi-card strong { font-size: 26px; }
+  .admin-section-heading h2 { font-size: 17px; }
+  .admin-section-count { font-size: 9px; }
+  .admin-operation-panel { padding: 16px; }
+  .admin-footer { flex-direction: column; gap: 5px; }
+}
+
+@media (max-width: 380px) {
+  .admin-dashboard-main { padding-right: 12px; padding-left: 12px; }
+  .admin-dashboard-shell > .admin-sidebar { padding-right: 12px; padding-left: 12px; }
+  .admin-welcome { padding-right: 14px; padding-left: 16px; }
+  .admin-welcome-mark { width: 69px; margin-right: -20px; }
+  .admin-welcome h1 { font-size: 24px; }
+  .admin-welcome p { max-width: 250px; }
+  .admin-quick-card { min-height: 96px; }
+}

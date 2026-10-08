@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getFirebaseAdminAuth } from "@/lib/firebase/admin";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
+import { getDashboardPath, getUserRole } from "@/lib/auth/roles";
 
 const SESSION_DURATION_MS = 5 * 24 * 60 * 60 * 1000;
 
@@ -19,6 +20,12 @@ export async function POST(request: Request) {
   try {
     const auth = getFirebaseAdminAuth();
     const decodedToken = await auth.verifyIdToken(idToken);
+    if (decodedToken.mustChangePassword === true || getUserRole(decodedToken) === "disabled") {
+      return NextResponse.json(
+        { error: "Akun ini belum dapat membuat sesi." },
+        { status: 403 },
+      );
+    }
     const authAge = Date.now() / 1000 - decodedToken.auth_time;
     if (authAge > 5 * 60) {
       return NextResponse.json(
@@ -32,12 +39,8 @@ export async function POST(request: Request) {
     });
     const response = NextResponse.json({
       ok: true,
-      role:
-        decodedToken.role === "superadmin"
-          ? "superadmin"
-          : decodedToken.role === "admin"
-            ? "admin"
-            : "user",
+      role: getUserRole(decodedToken),
+      destination: getDashboardPath(decodedToken),
     });
     response.cookies.set(SESSION_COOKIE_NAME, sessionCookie, {
       httpOnly: true,
