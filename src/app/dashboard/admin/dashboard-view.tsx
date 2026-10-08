@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { SignOutButton } from "../sign-out-button";
+import { SidebarDrawer } from "../sidebar-drawer";
 
 export type DashboardMetric = {
   id: string;
@@ -52,7 +53,7 @@ export function AdminDashboardView({
 
   return (
     <main className="dashboard-shell admin-dashboard-shell">
-      <aside className="dashboard-sidebar admin-sidebar">
+      <SidebarDrawer label="Navigasi dashboard admin" className="admin-sidebar">
         <Link className="brand" href="/" aria-label="Basecamp, halaman utama">
           <span className="brand-mark" aria-hidden="true">B</span>
           <span>basecamp<span className="brand-period">.</span></span>
@@ -61,7 +62,7 @@ export function AdminDashboardView({
           <span className="admin-workspace-dot" />
           <span>RUANG KERJA</span>
         </div>
-        <nav aria-label="Navigasi dashboard admin" className="admin-menu">
+        <nav className="admin-menu">
           <span className="admin-menu-caption">MENU UTAMA</span>
           <button
             className="admin-menu-link"
@@ -106,7 +107,7 @@ export function AdminDashboardView({
             </span>
           </div>
         </div>
-      </aside>
+      </SidebarDrawer>
 
       <section className="dashboard-main admin-dashboard-main">
         <header className="admin-topbar">

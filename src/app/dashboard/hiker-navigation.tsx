@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SignOutButton } from "./sign-out-button";
+import { SidebarDrawer } from "./sidebar-drawer";
 
 const links = [
   { href: "/dashboard", label: "Ringkasan", icon: "⌂" },
@@ -19,7 +20,7 @@ export function HikerNavigation({
   username?: string;
 }) {
   return (
-    <aside className="dashboard-sidebar">
+    <SidebarDrawer label="Navigasi dashboard pendaki">
       <Link className="brand" href="/">
         <span className="brand-mark" aria-hidden="true">B</span>
         <span>basecamp<span className="brand-period">.</span></span>
@@ -30,7 +31,7 @@ export function HikerNavigation({
         </span>
         <span><strong>{username ?? "Pendaki"}</strong><small>Akun pendaki</small></span>
       </div>
-      <nav aria-label="Navigasi dashboard pendaki">
+      <nav>
         {links.map((link) => (
           <Link
             key={link.href}
@@ -43,6 +44,6 @@ export function HikerNavigation({
       </nav>
       <div className="sidebar-note">Siapkan diri, pantau informasi resmi, dan jaga alam selama perjalanan.</div>
       <SignOutButton />
-    </aside>
+    </SidebarDrawer>
   );
 }

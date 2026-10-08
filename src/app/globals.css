@@ -1311,3 +1311,166 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .admin-welcome p { max-width: 250px; }
   .admin-quick-card { min-height: 96px; }
 }
+
+.dashboard-shell,
+.admin-dashboard-shell {
+  display: block;
+  min-height: 100vh;
+}
+.dashboard-shell > .dashboard-sidebar-drawer {
+  display: flex;
+  flex-direction: column;
+  width: min(280px, calc(100vw - 56px));
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  padding: 28px 18px 23px;
+  position: fixed;
+  z-index: 1102;
+  inset: 0 auto 0 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 0;
+  border-right: 1px solid #e2e8e3;
+  box-shadow: 12px 0 34px rgb(23 43 40 / 10%);
+  transform: translateX(-105%);
+  transition: transform .22s ease;
+}
+.dashboard-shell > .dashboard-sidebar-drawer.is-open {
+  transform: translateX(0);
+}
+.dashboard-sidebar-drawer.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  width: min(290px, calc(100vw - 56px));
+  min-height: 0;
+  padding: 28px 17px 18px;
+}
+.sidebar-drawer-toggle {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  position: fixed;
+  z-index: 1104;
+  top: 16px;
+  left: 16px;
+  border: 1px solid #dce6dd;
+  border-radius: 11px;
+  background: #fff;
+  color: #285a46;
+  box-shadow: 0 5px 18px rgb(23 43 40 / 12%);
+  cursor: pointer;
+  font-size: 21px;
+  line-height: 1;
+  transition: left .22s ease, background .16s ease, color .16s ease;
+}
+.sidebar-drawer-toggle.is-open {
+  left: min(222px, calc(100vw - 70px));
+  background: #edf4ee;
+}
+.sidebar-drawer-toggle:focus-visible,
+.sidebar-drawer-backdrop:focus-visible {
+  outline: 3px solid #6d9c7a;
+  outline-offset: 3px;
+}
+.sidebar-drawer-backdrop {
+  padding: 0;
+  position: fixed;
+  z-index: 1101;
+  inset: 0;
+  border: 0;
+  background: rgb(23 35 29 / 38%);
+  cursor: pointer;
+  animation: sidebar-backdrop-in .18s ease-out;
+}
+.admin-dashboard-shell > .admin-dashboard-main {
+  min-height: 100vh;
+}
+.dashboard-shell > .dashboard-main,
+.admin-dashboard-shell > .admin-dashboard-main {
+  padding-top: 76px;
+}
+.dashboard-shell > .dashboard-sidebar-drawer .hiker-account { display: flex; }
+.dashboard-shell > .dashboard-sidebar-drawer .sidebar-note { display: block; }
+.dashboard-shell > .dashboard-sidebar-drawer .admin-workspace-label { display: flex; }
+.dashboard-shell > .dashboard-sidebar-drawer .admin-menu-caption { display: block; }
+.dashboard-shell > .dashboard-sidebar-drawer nav,
+.admin-dashboard-shell .admin-sidebar .admin-menu {
+  display: grid;
+  min-width: 0;
+  max-width: none;
+  overflow: visible;
+}
+.dashboard-shell > .dashboard-sidebar-drawer nav a {
+  min-height: 43px;
+  padding: 0 12px;
+  white-space: normal;
+  font-size: 12px;
+}
+.dashboard-shell > .dashboard-sidebar-drawer nav a > span {
+  display: grid;
+  flex: 0 0 17px;
+  place-items: center;
+}
+.dashboard-shell > .dashboard-sidebar-drawer > .signout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-self: auto;
+  min-height: 38px;
+  margin-top: auto;
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+}
+.admin-dashboard-shell .admin-sidebar .admin-menu-link {
+  display: grid;
+  width: 100%;
+  min-height: 55px;
+  flex: initial;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  background: transparent;
+}
+.admin-dashboard-shell .admin-sidebar .admin-menu-icon {
+  display: grid;
+}
+.admin-dashboard-shell .admin-sidebar .admin-menu-copy small {
+  display: block;
+}
+.admin-dashboard-shell .admin-sidebar .admin-menu-arrow {
+  display: inline;
+}
+.admin-dashboard-shell .admin-sidebar .admin-sidebar-bottom {
+  display: grid;
+  gap: 14px;
+  margin: auto 0 0;
+}
+.admin-dashboard-shell .admin-sidebar .admin-sidebar-bottom .admin-account-card {
+  display: flex;
+}
+.admin-dashboard-shell .admin-sidebar .admin-public-link {
+  min-height: auto;
+  padding: 10px 8px;
+  font-size: 11px;
+}
+.admin-dashboard-shell .admin-sidebar .admin-public-link > span {
+  width: 25px;
+  height: 25px;
+  border: 0;
+  font-size: 14px;
+}
+
+@keyframes sidebar-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-shell > .dashboard-sidebar-drawer,
+  .sidebar-drawer-toggle,
+  .sidebar-drawer-backdrop {
+    animation: none;
+    transition: none;
+  }
+}

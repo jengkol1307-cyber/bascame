@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/auth/session";
 import { getDashboardPath } from "@/lib/auth/roles";
 import { SignOutButton } from "../sign-out-button";
 import { BasecampManager } from "./basecamp-manager";
+import { SidebarDrawer } from "../sidebar-drawer";
 
 export const instant = false;
 
@@ -14,18 +15,18 @@ export default async function SuperadminDashboardPage() {
 
   return (
     <main className="dashboard-shell">
-      <aside className="dashboard-sidebar">
+      <SidebarDrawer label="Navigasi dashboard superadmin">
         <Link className="brand" href="/">
           <span className="brand-mark" aria-hidden="true">B</span>
           <span>basecamp<span className="brand-period">.</span></span>
         </Link>
-        <nav aria-label="Navigasi dashboard superadmin">
+        <nav>
           <a href="/dashboard/superadmin" aria-current="page">Ringkasan</a>
           <a href="#platform">Platform</a>
           <Link href="/">Lihat halaman publik</Link>
         </nav>
         <div className="sidebar-note">Akses superadmin. Tetapkan admin basecamp dengan prinsip akses minimum.</div>
-      </aside>
+      </SidebarDrawer>
       <section className="dashboard-main">
         <div className="dashboard-topline">
           <span>Dashboard superadmin</span>
