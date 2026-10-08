@@ -28,16 +28,76 @@ function doPost(e) {
     return jsonResponse({ ok: false, error: 'Unauthorized.' });
   }
 
+  if (payload.action === 'delete') {
+    if (typeof payload.fileId !== 'string' || !payload.fileId) {
+      return jsonResponse({ ok: false, error: 'Invalid document ID.' });
+    }
+
+    try {
+      var file = DriveApp.getFileById(payload.fileId);
+      var parents = file.getParents();
+      var belongsToUploadFolder = false;
+      while (parents.hasNext()) {
+        if (parents.next().getId() === folderId) {
+          belongsToUploadFolder = true;
+        }
+      }
+      if (!belongsToUploadFolder) {
+        return jsonResponse({ ok: false, error: 'Document not found in upload folder.' });
+      }
+      file.setTrashed(true);
+      return jsonResponse({ ok: true });
+    } catch (error) {
+      console.error('Drive cleanup failed: ' + error.message);
+      return jsonResponse({ ok: false, error: 'Could not remove document.' });
+    }
+  }
+
+  if (payload.action === 'download') {
+    if (typeof payload.fileId !== 'string' || !payload.fileId) {
+      return jsonResponse({ ok: false, error: 'Invalid document ID.' });
+    }
+
+    try {
+      var downloadFile = DriveApp.getFileById(payload.fileId);
+      var downloadParents = downloadFile.getParents();
+      var downloadBelongsToFolder = false;
+      while (downloadParents.hasNext()) {
+        if (downloadParents.next().getId() === folderId) {
+          downloadBelongsToFolder = true;
+        }
+      }
+      if (!downloadBelongsToFolder) {
+        return jsonResponse({ ok: false, error: 'Document not found in upload folder.' });
+      }
+      var downloadBlob = downloadFile.getBlob();
+      var downloadBytes = downloadBlob.getBytes();
+      if (downloadBytes.length > 3 * 1024 * 1024) {
+        return jsonResponse({ ok: false, error: 'Document exceeds the 3 MB limit.' });
+      }
+      return jsonResponse({
+        ok: true,
+        base64: Utilities.base64Encode(downloadBytes),
+        mimeType: downloadBlob.getContentType()
+      });
+    } catch (error) {
+      console.error('Drive download failed: ' + error.message);
+      return jsonResponse({ ok: false, error: 'Could not retrieve document.' });
+    }
+  }
+
   if (payload.action !== 'upload') {
     return jsonResponse({ ok: false, error: 'Unsupported action.' });
   }
 
   if (
     typeof payload.name !== 'string' ||
-    payload.name.length < 1 ||
+    !payload.name.trim() ||
     payload.name.length > 180 ||
     typeof payload.mimeType !== 'string' ||
-    typeof payload.base64 !== 'string'
+    typeof payload.base64 !== 'string' ||
+    !/^[A-Za-z0-9+/]+={0,2}$/.test(payload.base64) ||
+    payload.base64.length % 4 !== 0
   ) {
     return jsonResponse({ ok: false, error: 'Invalid document details.' });
   }
@@ -51,8 +111,8 @@ function doPost(e) {
     return jsonResponse({ ok: false, error: 'Unsupported document type.' });
   }
 
-  if (payload.base64.length > 5600000) {
-    return jsonResponse({ ok: false, error: 'Document exceeds the 4 MB limit.' });
+  if (payload.base64.length > 4200000) {
+    return jsonResponse({ ok: false, error: 'Document exceeds the 3 MB limit.' });
   }
 
   var bytes;
@@ -62,12 +122,14 @@ function doPost(e) {
     return jsonResponse({ ok: false, error: 'Invalid document content.' });
   }
 
-  if (bytes.length > 4 * 1024 * 1024) {
-    return jsonResponse({ ok: false, error: 'Document exceeds the 4 MB limit.' });
+  if (!bytes.length || bytes.length > 3 * 1024 * 1024) {
+    return jsonResponse({ ok: false, error: 'Document exceeds the 3 MB limit.' });
   }
 
   try {
-    var safeName = payload.name.replace(/[\\/:*?"<>|]/g, '_').trim();
+    var safeName = payload.name
+      .replace(/[\u0000-\u001F\u007F\\/:*?"<>|]/g, '_')
+      .trim();
     var blob = Utilities.newBlob(bytes, payload.mimeType, safeName);
     var file = DriveApp.getFolderById(folderId).createFile(blob);
 

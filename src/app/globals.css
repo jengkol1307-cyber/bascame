@@ -1,0 +1,308 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #18332b;
+  --ink-soft: #4f625b;
+  --green: #315d4c;
+  --green-dark: #244739;
+  --sage: #e6ede5;
+  --paper: #fbfaf6;
+  --line: #e8e7df;
+  --muted: #829087;
+}
+
+@theme inline {
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button, input { font: inherit; }
+
+.site-header {
+  width: min(1160px, calc(100% - 64px));
+  height: 82px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: inline-flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 750; letter-spacing: -1px; }
+.brand-mark { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; color: white; background: var(--green); font-family: Georgia, serif; font-size: 19px; font-weight: 500; }
+.brand-period { color: #d28a54; }
+.main-nav { display: flex; gap: 38px; color: var(--ink-soft); font-size: 13px; }
+.main-nav a:hover, .button-text:hover { color: #a76839; }
+.button { min-height: 46px; padding: 0 20px; display: inline-flex; align-items: center; justify-content: center; gap: 14px; border-radius: 5px; font-size: 13px; font-weight: 700; transition: transform .18s ease, background .18s ease; }
+.button:hover { transform: translateY(-1px); }
+.button-small { min-height: 38px; padding: 0 17px; }
+.button-outline { border: 1px solid #cbd3cb; background: transparent; }
+.button-outline:hover { background: white; }
+.button-primary { color: white; background: var(--green); }
+.button-primary:hover { background: var(--green-dark); }
+.button-text { padding-left: 5px; color: var(--ink); }
+
+.hero { width: min(1160px, calc(100% - 64px)); min-height: 520px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 30px; }
+.hero-copy { padding: 40px 0 50px; }
+.eyebrow { color: #748379; font-size: 10px; font-weight: 800; letter-spacing: 1.55px; }
+.live-dot { display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; background: #c47b47; vertical-align: 1px; }
+.hero h1 { margin: 23px 0 17px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(42px, 5vw, 62px); font-weight: 500; letter-spacing: -2.4px; line-height: 1.08; }
+.hero h1 span { color: #7d8d7f; }
+.hero-copy > p { max-width: 450px; color: var(--ink-soft); font-size: 15px; line-height: 1.85; }
+.hero-actions { display: flex; align-items: center; gap: 21px; margin-top: 29px; }
+.hero-note { display: flex; align-items: center; gap: 11px; margin-top: 42px; color: var(--muted); font-size: 11px; }
+.avatar-stack { display: flex; padding-left: 2px; }
+.avatar-stack i { width: 24px; height: 24px; margin-left: -3px; display: grid; place-items: center; border: 2px solid var(--paper); border-radius: 50%; background: #bdc8b8; color: #405749; font-size: 9px; font-style: normal; font-weight: 700; }
+.avatar-stack i:nth-child(2) { background: #dfc6a7; }
+.avatar-stack i:nth-child(3) { background: #bac9ca; }
+.hero-art { height: 382px; position: relative; overflow: hidden; border-radius: 10px; background: linear-gradient(155deg, #edf0e9 0%, #dbe5da 52%, #c5d4c8 100%); }
+.sun { position: absolute; top: 58px; right: 112px; width: 75px; height: 75px; border-radius: 50%; background: #eac99f; opacity: .9; }
+.mountain-back, .mountain-mid, .mountain-front { position: absolute; bottom: 0; width: 0; height: 0; }
+.mountain-back { left: -3%; border-right: 230px solid transparent; border-bottom: 220px solid #aabdab; border-left: 240px solid transparent; }
+.mountain-mid { right: -8%; border-right: 255px solid transparent; border-bottom: 276px solid #8ea493; border-left: 255px solid transparent; }
+.mountain-front { left: 17%; border-right: 240px solid transparent; border-bottom: 185px solid #668573; border-left: 215px solid transparent; }
+.trail-card { position: absolute; right: 20px; bottom: 20px; display: flex; align-items: center; gap: 11px; padding: 13px 16px; border: 1px solid #ffffff9c; border-radius: 7px; background: #fffdf0e8; box-shadow: 0 8px 25px #18332b17; }
+.trail-icon { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: #e9efe6; color: var(--green); font-size: 20px; }
+.trail-card strong, .trail-card small { display: block; }
+.trail-card strong { font-size: 11px; }
+.trail-card small { margin-top: 3px; color: var(--muted); font-size: 10px; }
+.art-caption { position: absolute; bottom: 25px; left: 22px; color: #f3f4e9; font-size: 9px; letter-spacing: 1.1px; }
+
+.status-strip { width: min(1160px, calc(100% - 64px)); margin: 0 auto; padding: 24px 26px; display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: 7px; background: #fffefa; }
+.status-strip > div { display: flex; align-items: center; gap: 14px; padding: 0 18px; border-right: 1px solid var(--line); }
+.status-strip > div:first-child { padding-left: 0; }
+.status-strip > div:last-child { padding-right: 0; border: 0; }
+.strip-icon { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: #eef1e9; color: var(--green); font-size: 19px; }
+.status-strip strong, .status-strip small { display: block; }
+.status-strip strong { font-size: 12px; }
+.status-strip small { margin-top: 4px; color: var(--muted); font-size: 10px; }
+
+.mountain-section { width: min(1160px, calc(100% - 64px)); margin: 91px auto 86px; }
+.section-heading { margin-bottom: 25px; display: flex; align-items: end; justify-content: space-between; }
+.section-heading h2, .callout h2 { margin: 9px 0 0; font-family: Georgia, "Times New Roman", serif; font-size: 34px; font-weight: 500; letter-spacing: -.8px; }
+.muted-copy { padding-bottom: 5px; color: var(--muted); font-size: 11px; }
+.mountain-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.mountain-card { overflow: hidden; border: 1px solid var(--line); border-radius: 7px; background: #fffefa; }
+.card-illustration { height: 175px; position: relative; overflow: hidden; background: linear-gradient(150deg, #dfe9de, #becfc4); }
+.mountain-card-2 .card-illustration { background: linear-gradient(150deg, #e8dfce, #c7d1bb); }
+.mountain-card-3 .card-illustration { background: linear-gradient(150deg, #deddd4, #b9c5be); }
+.card-sun { position: absolute; top: 25px; right: 30%; width: 40px; height: 40px; border-radius: 50%; background: #e8c38c; }
+.card-peak { position: absolute; bottom: -1px; left: 16%; width: 0; height: 0; border-right: 120px solid transparent; border-bottom: 118px solid #879d8c; border-left: 120px solid transparent; }
+.card-hill { position: absolute; right: -10%; bottom: -48px; width: 95%; height: 110px; border-radius: 50% 50% 0 0; background: #6f8b78; transform: rotate(-8deg); }
+.mountain-status { position: absolute; top: 14px; left: 14px; padding: 7px 10px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #ffffffa8; border-radius: 30px; background: #fffdf0e8; font-size: 10px; font-weight: 700; }
+.mountain-status i { width: 6px; height: 6px; border-radius: 50%; background: #4c986c; }
+.status-watch i { background: #d1a048; }
+.status-closed i { background: #bb6e63; }
+.mountain-details { padding: 17px 17px 19px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.mountain-details h3 { margin: 0; font-size: 14px; }
+.mountain-details p { margin: 6px 0 0; color: var(--muted); font-size: 10px; }
+.elevation { flex-shrink: 0; color: #677a6d; font-size: 10px; }
+
+.callout { width: min(1160px, calc(100% - 64px)); min-height: 225px; margin: 0 auto 55px; padding: 39px 48px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; background: var(--green-dark); color: white; }
+.callout .eyebrow { color: #c6d1c5; }
+.callout h2 { margin-top: 12px; font-size: 30px; line-height: 1.18; }
+.callout p { margin: 12px 0 0; color: #c7d2c9; font-size: 12px; }
+.button-light { position: relative; z-index: 1; color: var(--ink); background: #f5f3e9; }
+.button-light:hover { background: white; }
+.callout-mark { position: absolute; top: -93px; right: 18%; color: #ffffff08; font-family: Georgia, serif; font-size: 330px; line-height: 1; }
+.site-footer { width: min(1160px, calc(100% - 64px)); min-height: 76px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+.site-footer .brand { color: var(--ink); font-size: 16px; }
+.site-footer .brand-mark { width: 25px; height: 25px; border-radius: 7px; font-size: 15px; }
+
+.auth-shell { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; background: var(--paper); }
+.auth-aside { padding: 48px; display: flex; flex-direction: column; justify-content: space-between; color: white; background: var(--green-dark); }
+.auth-aside .brand { color: white; }
+.auth-aside-copy { max-width: 420px; }
+.auth-aside-copy .eyebrow { color: #d1ddcf; }
+.auth-aside-copy h1 { font-family: Georgia, serif; font-size: 43px; font-weight: 500; line-height: 1.12; }
+.auth-aside-copy p { color: #d1ddcf; line-height: 1.8; }
+.auth-main { padding: 48px 24px; display: grid; place-items: center; }
+.auth-form { width: min(100%, 390px); }
+.auth-form h2 { margin: 0 0 8px; font-family: Georgia, serif; font-size: 32px; font-weight: 500; }
+.auth-form > p { margin: 0 0 28px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.form-field { margin-bottom: 17px; display: grid; gap: 7px; color: var(--ink-soft); font-size: 12px; font-weight: 700; }
+.form-field input { width: 100%; height: 45px; padding: 0 12px; border: 1px solid #dce1d9; border-radius: 4px; outline-color: var(--green); background: white; color: var(--ink); }
+.auth-submit { width: 100%; border: 0; cursor: pointer; }
+.auth-submit:disabled { cursor: wait; opacity: .65; }
+.auth-error { margin: 0 0 14px; padding: 11px; border-radius: 4px; background: #fbefec; color: #91483c; font-size: 12px; line-height: 1.5; }
+.auth-switch { margin-top: 20px !important; text-align: center; }
+.auth-switch button { padding: 0; border: 0; background: none; color: var(--green); cursor: pointer; font-weight: 700; }
+.back-home { display: inline-block; margin-top: 22px; color: var(--muted); font-size: 12px; }
+.dashboard-shell { min-height: 100vh; display: grid; grid-template-columns: 235px 1fr; }
+.dashboard-sidebar { padding: 27px 20px; display: flex; flex-direction: column; gap: 35px; border-right: 1px solid var(--line); background: #fffefa; }
+.dashboard-sidebar nav { display: grid; gap: 6px; }
+.dashboard-sidebar nav a { padding: 11px 12px; border-radius: 4px; color: var(--ink-soft); font-size: 13px; }
+.dashboard-sidebar nav a[aria-current="page"], .dashboard-sidebar nav a:hover { background: #eaf0e8; color: var(--green-dark); }
+.dashboard-sidebar .sidebar-note { margin-top: auto; padding: 14px; border-radius: 5px; background: #eff2e9; color: var(--ink-soft); font-size: 11px; line-height: 1.6; }
+.dashboard-main { padding: 42px clamp(24px, 5vw, 70px); }
+.dashboard-topline { display: flex; justify-content: space-between; align-items: center; }
+.dashboard-topline > span { color: var(--muted); font-size: 12px; }
+.dashboard-main h1 { margin: 13px 0 7px; font-family: Georgia, serif; font-size: 36px; font-weight: 500; }
+.dashboard-lede { margin: 0 0 30px; color: var(--muted); font-size: 13px; }
+.dashboard-panel { max-width: 820px; padding: 23px; border: 1px solid var(--line); border-radius: 6px; background: #fffefa; }
+.dashboard-panel h2 { margin: 0 0 8px; font-size: 16px; }
+.dashboard-panel p { color: var(--ink-soft); font-size: 13px; line-height: 1.7; }
+.dashboard-stats { max-width: 820px; margin: 23px 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
+.stat-card { padding: 18px; border: 1px solid var(--line); border-radius: 6px; background: #fffefa; }
+.stat-card small, .stat-card strong { display: block; }
+.stat-card small { color: var(--muted); font-size: 11px; }
+.stat-card strong { margin-top: 13px; font-size: 24px; font-weight: 600; }
+.inline-form { display: flex; gap: 10px; }
+.inline-form input { flex: 1; min-width: 0; height: 44px; padding: 0 12px; border: 1px solid #dce1d9; border-radius: 4px; background: white; }
+.signout-button { border: 0; background: none; color: var(--green); cursor: pointer; font-size: 12px; }
+.hiker-account { display: flex; align-items: center; gap: 11px; padding: 13px 8px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.hiker-avatar { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: #e5ece2; color: var(--green); font-family: Georgia, serif; font-size: 16px; }
+.hiker-account strong, .hiker-account small { display: block; max-width: 145px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hiker-account strong { font-size: 12px; }
+.hiker-account small { margin-top: 3px; color: var(--muted); font-size: 10px; }
+.dashboard-sidebar nav a { display: flex; align-items: center; gap: 11px; }
+.dashboard-sidebar nav a > span { width: 17px; color: #7b8d80; font-size: 15px; text-align: center; }
+.dashboard-sidebar > .signout-button { align-self: flex-start; padding: 8px 12px; }
+.hiker-page-stack { display: grid; gap: 17px; }
+.hiker-page-stack .dashboard-panel { max-width: none; }
+.hiker-panel-heading { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin-bottom: 19px; }
+.hiker-panel-heading h2 { margin: 6px 0 0; font-size: 19px; }
+.hiker-panel-heading > a, .hiker-home-heading > a { color: var(--green); font-size: 11px; font-weight: 700; }
+.hiker-count { color: var(--muted); font-size: 11px; }
+.hiker-hero-card { min-height: 230px; margin: 22px 0 16px; padding: 29px 34px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; border-radius: 7px; background: var(--green-dark); color: white; }
+.hiker-hero-card > div:first-child { position: relative; z-index: 2; }
+.hiker-hero-card .eyebrow { color: #cedbcf; }
+.hiker-hero-card h2 { max-width: 510px; margin: 12px 0 7px; font-family: Georgia, serif; font-size: clamp(24px, 3vw, 33px); font-weight: 500; }
+.hiker-hero-card p { margin: 0 0 14px; color: #d2ddd3; font-size: 12px; }
+.hiker-hero-card .button { margin-top: 17px; }
+.hiker-hero-illustration { width: 220px; height: 180px; position: absolute; right: 28px; bottom: 0; overflow: hidden; opacity: .74; }
+.hiker-hero-illustration span, .hiker-hero-illustration i, .hiker-hero-illustration b { position: absolute; bottom: -30px; display: block; width: 0; height: 0; border-right: 100px solid transparent; border-left: 100px solid transparent; }
+.hiker-hero-illustration span { right: 0; border-bottom: 150px solid #789181; }
+.hiker-hero-illustration i { left: -20px; border-right-width: 120px; border-left-width: 120px; border-bottom: 110px solid #9aab96; }
+.hiker-hero-illustration b { right: 35px; border-right-width: 93px; border-left-width: 93px; border-bottom: 78px solid #b6bda1; }
+.hiker-shortcuts { margin: 0 0 35px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.hiker-shortcuts a { min-height: 115px; padding: 16px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; border: 1px solid var(--line); border-radius: 6px; background: #fffefa; }
+.hiker-shortcuts a:hover { border-color: #b7c8b7; background: #f8faf5; }
+.hiker-shortcuts a > span { margin-bottom: 9px; color: var(--green); font-size: 19px; }
+.hiker-shortcuts strong { font-size: 12px; }
+.hiker-shortcuts small { margin-top: 5px; color: var(--muted); font-size: 10px; }
+.hiker-home-heading { margin: 12px 0 14px; }
+.hiker-home-heading h2 { font-family: Georgia, serif; font-size: 23px; font-weight: 500; }
+.hiker-info-card { display: flex; gap: 14px; }
+.hiker-info-icon { width: 30px; height: 30px; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%; background: #f6eddd; color: #93653b; font-family: Georgia, serif; font-weight: 700; }
+.hiker-info-card strong { font-size: 12px; }
+.hiker-info-card p { margin: 6px 0 9px; }
+.hiker-info-card a { color: var(--green); font-size: 11px; font-weight: 700; }
+.hiker-recent-trips { margin-top: 17px; }
+.hiker-recent-trips .hiker-panel-heading { margin-bottom: 8px; }
+.hiker-list { display: grid; }
+.hiker-list-row { min-height: 68px; display: flex; align-items: center; gap: 13px; border-bottom: 1px solid var(--line); }
+.hiker-list-row:last-child { border-bottom: 0; }
+.hiker-list-icon { width: 36px; height: 36px; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%; background: #edf1e9; color: var(--green); font-size: 18px; }
+.hiker-list-content { flex: 1; min-width: 0; }
+.hiker-list-content strong, .hiker-list-content span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hiker-list-content strong { font-size: 12px; }
+.hiker-list-content span { margin-top: 4px; color: var(--muted); font-size: 10px; }
+.hiker-badge { width: fit-content; padding: 6px 9px; display: inline-flex; align-items: center; border-radius: 24px; background: #eef1e9; color: #506a58; font-size: 10px; font-weight: 700; }
+.hiker-badge-pending { background: #f5efdf; color: #92733d; }
+.hiker-badge-needs_revision { background: #f8ebdd; color: #9b6838; }
+.hiker-badge-rejected { background: #f8e9e6; color: #a05347; }
+.hiker-badge-approved, .hiker-badge-checked_in { background: #e7f2e9; color: #3c764f; }
+.hiker-badge-checked_out { background: #eaf0ed; color: #516761; }
+.hiker-empty { min-height: 100px; display: flex; flex-direction: column; justify-content: center; gap: 7px; color: var(--ink-soft); }
+.hiker-empty strong { color: var(--ink); font-size: 13px; }
+.hiker-empty span { color: var(--muted); font-size: 11px; line-height: 1.6; }
+.hiker-disclaimer { color: var(--muted); font-size: 10px; line-height: 1.6; }
+.hiker-form { margin-top: 17px; }
+.hiker-form .form-field { margin-bottom: 15px; }
+.hiker-form .form-field input, .hiker-form select, .hiker-form textarea, .hiker-checklist-form input, .hiker-checklist-form select, .mountain-search input { width: 100%; min-height: 43px; padding: 10px 12px; border: 1px solid #dce1d9; border-radius: 4px; outline-color: var(--green); background: white; color: var(--ink); }
+.hiker-form textarea { resize: vertical; }
+.hiker-form h3 { margin: 14px 0; font-size: 13px; }
+.hiker-form h3 span, .form-field span { color: var(--muted); font-size: 10px; font-weight: 400; }
+.hiker-form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+.hiker-form-row:has(input[type="number"]) { grid-template-columns: 2fr 2fr 1fr; }
+.hiker-form .button { margin-top: 2px; }
+.hiker-success { margin: 12px 0; padding: 11px 13px; border-radius: 4px; background: #e9f3e9; color: #426f4c; font-size: 12px; }
+.hiker-list .hiker-badge { flex-shrink: 0; }
+.hiker-checklist-form { display: grid; grid-template-columns: minmax(170px, 1fr) 190px auto; align-items: end; gap: 13px; }
+.hiker-checklist-form .form-field { margin-bottom: 0; }
+.hiker-checklist-form .button { min-height: 43px; }
+.hiker-checklist-groups { margin-top: 24px; }
+.hiker-checklist-group { margin-top: 20px; }
+.hiker-checklist-group h3 { padding-bottom: 9px; border-bottom: 1px solid var(--line); font-size: 12px; }
+.hiker-checklist-item { min-height: 45px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f0efe9; }
+.hiker-checklist-item label { display: flex; align-items: center; gap: 10px; color: var(--ink-soft); font-size: 12px; cursor: pointer; }
+.hiker-checklist-item input { accent-color: var(--green); }
+.hiker-checklist-item .is-done { color: var(--muted); text-decoration: line-through; }
+.hiker-delete-button { border: 0; background: none; color: #a25d50; cursor: pointer; font-size: 10px; }
+.hiker-document-action { flex-shrink: 0; padding: 6px 8px; border: 0; border-radius: 4px; background: #edf1e9; color: var(--green); cursor: pointer; font-size: 10px; font-weight: 700; }
+.hiker-document-action:disabled { cursor: wait; opacity: .55; }
+.hiker-document-delete { background: #f8ebeb; color: #9b5048; }
+.hiker-security-section { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--line); }
+.hiker-security-section h3 { margin: 0; font-size: 14px; }
+.hiker-security-section p { color: var(--muted); font-size: 11px; }
+.hiker-mountain-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+.hiker-mountain-card { overflow: hidden; border: 1px solid var(--line); border-radius: 6px; background: #fffefa; }
+.hiker-mountain-art { height: 130px; position: relative; overflow: hidden; background: linear-gradient(155deg, #e3e9df, #c4d3c6); }
+.hiker-mountain-art-2 { background: linear-gradient(155deg, #e9e2d3, #cbd1bb); }
+.hiker-mountain-art-3 { background: linear-gradient(155deg, #dfded7, #bdcbc1); }
+.hiker-mountain-art .card-peak { left: 15%; border-right-width: 145px; border-left-width: 145px; border-bottom-width: 115px; border-bottom-color: #829987; }
+.hiker-mountain-art .card-hill { right: -10%; width: 75%; height: 80px; }
+.hiker-mountain-body { padding: 16px; }
+.hiker-mountain-body h3 { margin: 11px 0 5px; font-size: 15px; }
+.hiker-mountain-body p { margin: 5px 0 10px; color: var(--muted); font-size: 10px; line-height: 1.6; }
+.hiker-mountain-body .button { min-height: 38px; margin-top: 8px; font-size: 11px; }
+.mountain-search { margin: 15px 0 0; }
+.hiker-announcement h2 { margin: 12px 0 5px; font-family: Georgia, serif; font-size: 20px; font-weight: 500; }
+.hiker-announcement p { white-space: pre-wrap; }
+.hiker-announcement small { color: var(--muted); font-size: 10px; }
+.hiker-safety-note { margin-top: 18px; }
+
+@media (max-width: 760px) {
+  .site-header, .hero, .status-strip, .mountain-section, .callout, .site-footer { width: min(100% - 36px, 560px); }
+  .site-header { height: 69px; }
+  .main-nav { display: none; }
+  .hero { padding: 42px 0 35px; grid-template-columns: 1fr; gap: 18px; }
+  .hero-copy { padding: 0; }
+  .hero h1 { font-size: 46px; }
+  .hero-art { height: 270px; }
+  .status-strip { padding: 8px 15px; grid-template-columns: 1fr; }
+  .status-strip > div, .status-strip > div:first-child, .status-strip > div:last-child { padding: 13px 0; border-right: 0; border-bottom: 1px solid var(--line); }
+  .status-strip > div:last-child { border: 0; }
+  .mountain-section { margin: 60px auto; }
+  .section-heading { align-items: start; flex-direction: column; gap: 9px; }
+  .section-heading h2 { font-size: 30px; }
+  .mountain-grid { grid-template-columns: 1fr; gap: 12px; }
+  .card-illustration { height: 160px; }
+  .callout { min-height: 270px; padding: 27px; align-items: start; flex-direction: column; justify-content: center; gap: 23px; }
+  .callout h2 { font-size: 28px; }
+  .site-footer { padding: 15px 0; align-items: start; flex-direction: column; gap: 11px; }
+  .auth-shell { grid-template-columns: 1fr; }
+  .auth-aside { min-height: 220px; padding: 25px; }
+  .auth-aside-copy { margin-top: 30px; }
+  .auth-aside-copy h1 { margin: 13px 0; font-size: 31px; }
+  .auth-aside-copy p { display: none; }
+  .auth-aside > span { display: none; }
+  .auth-main { padding: 38px 24px; }
+  .dashboard-shell { grid-template-columns: 1fr; }
+  .dashboard-sidebar { padding: 15px 18px; gap: 14px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .dashboard-sidebar nav { display: flex; overflow-x: auto; }
+  .dashboard-sidebar .sidebar-note { display: none; }
+  .dashboard-main { padding: 30px 20px; }
+  .dashboard-main h1 { font-size: 30px; }
+  .dashboard-stats { grid-template-columns: 1fr; }
+  .inline-form { flex-direction: column; }
+  .hiker-shortcuts { grid-template-columns: repeat(2, 1fr); }
+  .hiker-hero-card { min-height: 250px; padding: 24px; }
+  .hiker-hero-illustration { right: -45px; opacity: .4; }
+  .hiker-panel-heading { align-items: flex-start; }
+  .hiker-list-row { gap: 9px; }
+  .hiker-list-row > .hiker-badge { max-width: 120px; text-align: center; }
+  .hiker-form-row, .hiker-form-row:has(input[type="number"]) { grid-template-columns: 1fr; gap: 0; }
+  .hiker-checklist-form { grid-template-columns: 1fr; }
+  .hiker-mountain-grid { grid-template-columns: 1fr; }
+}
