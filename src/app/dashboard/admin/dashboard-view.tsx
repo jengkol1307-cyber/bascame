@@ -49,7 +49,16 @@ export function AdminDashboardView({
 
   return (
     <main className="dashboard-shell admin-dashboard-shell">
-      <aside className="dashboard-sidebar admin-sidebar" aria-label="Navigasi dashboard admin">
+      <details
+        className="dashboard-sidebar admin-sidebar"
+        role="complementary"
+        aria-label="Navigasi dashboard admin"
+      >
+        <summary className="admin-sidebar-toggle">
+          <span aria-hidden="true">☰</span>
+          <span className="admin-sidebar-toggle-open">Sembunyikan menu</span>
+          <span className="admin-sidebar-toggle-closed">Buka menu</span>
+        </summary>
         <Link className="brand" href="/" aria-label="Basecamp, halaman utama">
           <span className="brand-mark" aria-hidden="true">B</span>
           <span>basecamp<span className="brand-period">.</span></span>
@@ -58,7 +67,7 @@ export function AdminDashboardView({
           <span className="admin-workspace-dot" />
           <span>RUANG KERJA</span>
         </div>
-        <nav className="admin-menu">
+        <nav className="admin-menu" aria-label="Menu operasional">
           <span className="admin-menu-caption">MENU UTAMA</span>
           <a
             className="admin-menu-link"
@@ -101,7 +110,7 @@ export function AdminDashboardView({
             </span>
           </div>
         </div>
-      </aside>
+      </details>
 
       <section className="dashboard-main admin-dashboard-main">
         <header className="admin-topbar">

@@ -2,7 +2,7 @@
 
 The Android app is a Kotlin native companion to the Basecamp web dashboard. Its native hiker workspace includes trip summaries and applications, public mountain information, a personal checklist, private document upload/download, public announcements, profile and emergency-contact editing, Firebase password-reset requests, and checked-in trip selection. It also provides background location tracking with a local upload queue, SOS submission with a stable retry ID, and a MapLibre offline-area download screen.
 
-Staff and admin roles open the web dashboard in Android WebView and use its responsive web navigation; no separate native admin menu is shown.
+Staff and admin roles open the web dashboard in Android WebView and use its responsive web navigation; the mobile admin navigation can be expanded or collapsed from its web menu control, with no separate native admin menu.
 
 Group applications collect the names of companions only; the applicant is represented by the account owner. The number of companion names must match the total group size minus one.
 
