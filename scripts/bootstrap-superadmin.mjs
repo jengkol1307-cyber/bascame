@@ -18,7 +18,15 @@ async function loadLocalEnvironment() {
     if (separator < 1) continue;
 
     const key = trimmed.slice(0, separator);
-    const value = trimmed.slice(separator + 1);
+    let value = trimmed.slice(separator + 1);
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      const quote = value[0];
+      value = value.slice(1, -1);
+      if (quote === '"') value = value.replace(/\\n/g, "\n");
+    }
     if (process.env[key] === undefined) process.env[key] = value;
   }
 }
@@ -31,34 +39,74 @@ function requiredEnvironment(name) {
 
 await loadLocalEnvironment();
 
-const projectId = requiredEnvironment("FIREBASE_PROJECT_ID");
-const serviceAccountJson = requiredEnvironment("FIREBASE_SERVICE_ACCOUNT_JSON");
+const adminProjectId = process.env.FIREBASE_ADMIN_PROJECT_ID?.trim();
+const adminClientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL?.trim();
+const adminPrivateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.trim();
+const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
+const hasAnyAdminCredentials =
+  Boolean(adminProjectId) || Boolean(adminClientEmail) || Boolean(adminPrivateKey);
 const password = requiredEnvironment("SUPERADMIN_PASSWORD");
 
 if (password.length < 6 || password.length > 128) {
   throw new Error("SUPERADMIN_PASSWORD must be between 6 and 128 characters.");
 }
 
-let serviceAccount;
-try {
-  serviceAccount = JSON.parse(serviceAccountJson);
-} catch {
-  throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON must be valid JSON.");
+let projectId;
+let clientEmail;
+let privateKey;
+if (hasAnyAdminCredentials) {
+  if (!adminProjectId || !adminClientEmail || !adminPrivateKey) {
+    throw new Error(
+      "Set all three Firebase Admin variables: FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, and FIREBASE_ADMIN_PRIVATE_KEY.",
+    );
+  }
+  projectId = adminProjectId;
+  clientEmail = adminClientEmail;
+  privateKey = adminPrivateKey;
+} else if (serviceAccountJson) {
+  let serviceAccount;
+  try {
+    serviceAccount = JSON.parse(serviceAccountJson);
+  } catch {
+    throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON must be valid JSON.");
+  }
+  if (
+    typeof serviceAccount !== "object" ||
+    serviceAccount === null ||
+    Array.isArray(serviceAccount)
+  ) {
+    throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON must contain a JSON object.");
+  }
+  projectId =
+    process.env.FIREBASE_PROJECT_ID?.trim() ??
+    (typeof serviceAccount.project_id === "string"
+      ? serviceAccount.project_id
+      : undefined);
+  clientEmail =
+    typeof serviceAccount.client_email === "string"
+      ? serviceAccount.client_email
+      : undefined;
+  privateKey =
+    typeof serviceAccount.private_key === "string"
+      ? serviceAccount.private_key
+      : undefined;
+} else {
+  throw new Error(
+    "Set all three FIREBASE_ADMIN_* variables or provide FIREBASE_SERVICE_ACCOUNT_JSON.",
+  );
 }
 
-if (
-  serviceAccount.project_id !== projectId ||
-  typeof serviceAccount.client_email !== "string" ||
-  typeof serviceAccount.private_key !== "string"
-) {
-  throw new Error("The service account must match FIREBASE_PROJECT_ID and contain its private key.");
+if (!projectId || !clientEmail || !privateKey) {
+  throw new Error(
+    "Firebase Admin credentials must include a project ID, client email, and private key.",
+  );
 }
 
 const app = initializeApp({
   credential: cert({
     projectId,
-    clientEmail: serviceAccount.client_email,
-    privateKey: serviceAccount.private_key.replace(/\\n/g, "\n"),
+    clientEmail,
+    privateKey: privateKey.replace(/\\n/g, "\n"),
   }),
   projectId,
 });
