@@ -4,7 +4,7 @@ Fondasi aplikasi pengelolaan informasi pendakian dengan Next.js, Firebase, Googl
 
 ## Menjalankan lokal
 
-Gunakan Node.js 22 atau lebih baru.
+Gunakan Node.js 24 LTS.
 
 ```bash
 npm ci
