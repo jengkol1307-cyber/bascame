@@ -14,6 +14,22 @@ fun localSetting(name: String, fallback: String): String =
     localProperties.getProperty(name) ?: providers.gradleProperty(name).orNull ?: fallback
 fun quotedBuildConfig(value: String): String =
     "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
+val releaseStoreFile = rootProject.file(localSetting("RELEASE_STORE_FILE", "my-release-key.jks"))
+val releaseStorePassword = localSetting("RELEASE_STORE_PASSWORD", "")
+val releaseKeyAlias = localSetting("RELEASE_KEY_ALIAS", "")
+val releaseKeyPassword = localSetting("RELEASE_KEY_PASSWORD", "")
+val releaseBuildRequested = gradle.startParameter.taskNames.any {
+    it.contains("release", ignoreCase = true)
+}
+
+if (releaseBuildRequested) {
+    require(releaseStoreFile.isFile) {
+        "Release keystore not found: ${releaseStoreFile.absolutePath}"
+    }
+    require(releaseStorePassword.isNotBlank() && releaseKeyAlias.isNotBlank() && releaseKeyPassword.isNotBlank()) {
+        "Set RELEASE_STORE_PASSWORD, RELEASE_KEY_ALIAS, and RELEASE_KEY_PASSWORD in android/local.properties."
+    }
+}
 
 android {
     namespace = "id.basecamp.pendaki"
@@ -40,6 +56,12 @@ android {
         }
         getByName("release") {
             manifestPlaceholders["usesCleartextTraffic"] = "false"
+            signingConfig = signingConfigs.create("release") {
+                storeFile = releaseStoreFile
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
         }
     }
 

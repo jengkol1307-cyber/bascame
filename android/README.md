@@ -23,6 +23,19 @@ Authenticated Android API calls use the Firebase ID token. The corresponding API
    `10.0.2.2` is the Android emulator alias for the host computer. For a device or release build, set `API_BASE_URL` to the deployed Basecamp HTTPS origin. Release builds disable cleartext HTTP; debug builds allow it for the local emulator.
 4. Open the `android` folder in Android Studio and allow Gradle to sync. Build and run the `app` debug configuration.
 
+## Release signing
+
+The release APK uses the existing `android/my-release-key.jks` keystore. Keep the keystore and its credentials private; the keystore path is ignored by Git. Add these entries to `android/local.properties` before running `.\gradlew.bat assembleRelease` from the `android` folder:
+
+```properties
+RELEASE_STORE_FILE=my-release-key.jks
+RELEASE_STORE_PASSWORD=your-keystore-password
+RELEASE_KEY_ALIAS=your-key-alias
+RELEASE_KEY_PASSWORD=your-key-password
+```
+
+Do not commit `local.properties` or send signing passwords in chat. Release builds fail clearly if the keystore or required settings are missing.
+
 Do not put service-account credentials or private server keys in the Android app. `MAPTILER_API_KEY` is necessarily shipped in the client; restrict it in the MapTiler account to the intended application and usage.
 
 ## Location and SOS behavior

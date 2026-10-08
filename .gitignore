@@ -41,6 +41,7 @@ yarn-error.log*
 # Android local configuration
 /android/local.properties
 /android/app/google-services.json
+/android/my-release-key.jks
 /android/.gradle/
 /android/build/
 /android/app/build/
