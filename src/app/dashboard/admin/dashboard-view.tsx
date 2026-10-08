@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { SignOutButton } from "../sign-out-button";
-import { SidebarDrawer } from "../sidebar-drawer";
 
 export type DashboardMetric = {
   id: string;
@@ -30,6 +29,7 @@ type AdminDashboardViewProps = {
   metrics: DashboardMetric[];
   summaryError: string;
   panels: DashboardPanel[];
+  initialPanelId: string;
 };
 
 export function AdminDashboardView({
@@ -41,19 +41,15 @@ export function AdminDashboardView({
   metrics,
   summaryError,
   panels,
+  initialPanelId,
 }: AdminDashboardViewProps) {
-  const [activePanelId, setActivePanelId] = useState("overview");
+  const activePanelId = initialPanelId;
   const activePanel = panels.find((panel) => panel.id === activePanelId);
   const firstName = displayName.split(/\s+/)[0];
 
-  function showPanel(panelId: string) {
-    setActivePanelId(panelId);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
   return (
     <main className="dashboard-shell admin-dashboard-shell">
-      <SidebarDrawer label="Navigasi dashboard admin" className="admin-sidebar">
+      <aside className="dashboard-sidebar admin-sidebar" aria-label="Navigasi dashboard admin">
         <Link className="brand" href="/" aria-label="Basecamp, halaman utama">
           <span className="brand-mark" aria-hidden="true">B</span>
           <span>basecamp<span className="brand-period">.</span></span>
@@ -64,11 +60,10 @@ export function AdminDashboardView({
         </div>
         <nav className="admin-menu">
           <span className="admin-menu-caption">MENU UTAMA</span>
-          <button
+          <a
             className="admin-menu-link"
-            type="button"
+            href="/dashboard/admin"
             aria-current={activePanelId === "overview" ? "page" : undefined}
-            onClick={() => showPanel("overview")}
           >
             <span className="admin-menu-icon" aria-hidden="true">⌂</span>
             <span className="admin-menu-copy">
@@ -76,14 +71,13 @@ export function AdminDashboardView({
               <small>KPI dan ikhtisar operasional</small>
             </span>
             <span className="admin-menu-arrow" aria-hidden="true">›</span>
-          </button>
+          </a>
           {panels.map((panel) => (
-            <button
+            <a
               className="admin-menu-link"
-              type="button"
+              href={`/dashboard/admin?panel=${encodeURIComponent(panel.id)}`}
               aria-current={activePanelId === panel.id ? "page" : undefined}
               key={panel.id}
-              onClick={() => showPanel(panel.id)}
             >
               <span className="admin-menu-icon" aria-hidden="true">{panel.icon}</span>
               <span className="admin-menu-copy">
@@ -91,7 +85,7 @@ export function AdminDashboardView({
                 <small>{panel.detail}</small>
               </span>
               <span className="admin-menu-arrow" aria-hidden="true">›</span>
-            </button>
+            </a>
           ))}
         </nav>
         <div className="admin-sidebar-bottom">
@@ -107,7 +101,7 @@ export function AdminDashboardView({
             </span>
           </div>
         </div>
-      </SidebarDrawer>
+      </aside>
 
       <section className="dashboard-main admin-dashboard-main">
         <header className="admin-topbar">

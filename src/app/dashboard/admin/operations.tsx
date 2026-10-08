@@ -15,6 +15,7 @@ type RegistrationRecord = {
   startDate?: string;
   endDate?: string;
   groupSize?: number;
+  memberNames?: string[];
   status?: string;
   ticketCode?: string | null;
 };
@@ -112,12 +113,14 @@ function RegistrationWorkspace({ role }: { role: UserRole }) {
       startDate?: string;
       endDate?: string;
       groupSize?: number | null;
+      memberNames?: string[];
     };
     if (!response.ok) throw new Error(result.error ?? "Tiket belum dapat diproses.");
     reload();
     router.refresh();
     const actionLabel = result.action === "check_in" ? "Check-in berhasil" : "Check-out berhasil";
-    return `${actionLabel}: ${result.mountainName ?? "Gunung"} · ${result.startDate ?? ""} – ${result.endDate ?? ""} · ${result.groupSize ?? "—"} orang.`;
+    const memberNames = result.memberNames?.length ? ` · Anggota lain: ${result.memberNames.join(", ")}` : "";
+    return `${actionLabel}: ${result.mountainName ?? "Gunung"} · ${result.startDate ?? ""} – ${result.endDate ?? ""} · ${result.groupSize ?? "—"} orang${memberNames}.`;
   }
 
   useEffect(() => {
@@ -201,6 +204,9 @@ function RegistrationWorkspace({ role }: { role: UserRole }) {
               <div>
                 <strong>{registration.ownerName ?? "Pendaki"} · {registration.mountainName ?? "Gunung"}</strong>
                 <span>{registration.startDate} – {registration.endDate} · {registration.groupSize ?? "—"} orang</span>
+                {(registration.memberNames?.length ?? 0) > 0 && (
+                  <small>Anggota lain: {registration.memberNames?.join(", ")}</small>
+                )}
                 {!fieldOnly && registration.ownerEmail && <small>{registration.ownerEmail}</small>}
                 {!fieldOnly && registration.emergencyContactName && (
                   <small>Darurat: {registration.emergencyContactName} · {registration.emergencyContactPhone}</small>

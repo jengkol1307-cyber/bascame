@@ -2,6 +2,10 @@
 
 The Android app is a Kotlin native companion to the Basecamp web dashboard. Its native hiker workspace includes trip summaries and applications, public mountain information, a personal checklist, private document upload/download, public announcements, profile and emergency-contact editing, Firebase password-reset requests, and checked-in trip selection. It also provides background location tracking with a local upload queue, SOS submission with a stable retry ID, and a MapLibre offline-area download screen.
 
+Staff and admin roles open the web dashboard in Android WebView and use its responsive web navigation; no separate native admin menu is shown.
+
+Group applications collect the names of companions only; the applicant is represented by the account owner. The number of companion names must match the total group size minus one.
+
 Authenticated Android API calls use the Firebase ID token. The corresponding API routes accept either that bearer token or the existing web session cookie, so the native app does not need to persist a web session cookie.
 
 ## Local setup
@@ -25,7 +29,7 @@ Do not put service-account credentials or private server keys in the Android app
 
 Location tracking is only available for a trip whose server status is `checked_in`. Android requires foreground location permission and, for background updates, the user must grant background location access. On Android 11 and newer the app opens system settings so the user can explicitly choose “Allow all the time.” A persistent foreground-service notification provides a stop action.
 
-The app requests automatic location updates at an approximate 30-minute interval. Android may defer or batch updates due to battery, device, and operating-system policies; this is not a guaranteed schedule. On the Safety tab, the hiker can also tap “Kirim titik lokasi sekarang” to capture and queue a fresh GPS point without waiting for the automatic interval. Captured points and SOS requests are persisted locally before upload and remain in the outbox when upload fails. SOS is prioritized, and the UI does not report server confirmation until the request leaves the local queue. Active SOS updates are published to Firebase Realtime Database for fast Basecamp visibility; Firestore retains the permanent incident history.
+The app requests automatic location updates at an approximate 30-minute interval. Android may defer or batch updates due to battery, device, and operating-system policies; this is not a guaranteed schedule. On the Safety tab, the hiker can also tap “Kirim titik lokasi sekarang” to capture and queue a fresh GPS point without waiting for the automatic interval. Captured points and SOS requests are persisted locally before upload and remain in the outbox when upload fails. An item leaves the local queue only after the server confirms a successful upload; a queue count of zero means there is no pending upload, not that server history was deleted. Ordinary GPS points remain in Firestore, while active SOS updates are published to Firebase Realtime Database for fast Basecamp visibility and archived in Firestore.
 
 ## Offline maps
 

@@ -24,7 +24,7 @@ Isi `.env.local` dengan konfigurasi Firebase dan GAS sebelum menggunakan login, 
 
 Realtime Database menyebarkan SOS aktif dan pembaruan status/lokasi dengan cepat; Firestore tetap menjadi arsip permanen dan menyimpan data aplikasi utama. File dokumen tetap privat di Google Drive.
 
-Peta pelacakan dashboard memakai tile OpenStreetMap dan menampilkan atribusi kontributor pada peta; tidak memerlukan kunci MapTiler. Tile publik OpenStreetMap ditujukan untuk penggunaan wajar dan mengikuti [kebijakan tile](https://operations.osmfoundation.org/policies/tiles/); untuk trafik tinggi, gunakan penyedia tile yang sesuai atau host tile sendiri.
+Peta pelacakan dashboard memakai tile OpenStreetMap dan menampilkan atribusi kontributor pada peta; tidak memerlukan kunci MapTiler. Saat data histori GPS atau SOS tersedia, peta otomatis menyesuaikan zoom agar rute dan titik terlihat. Tile publik OpenStreetMap ditujukan untuk penggunaan wajar dan mengikuti [kebijakan tile](https://operations.osmfoundation.org/policies/tiles/); untuk trafik tinggi, gunakan penyedia tile yang sesuai atau host tile sendiri.
 
 ### Role staf dan akun Basecamp
 
@@ -75,6 +75,7 @@ Buat project Vercel terlebih dahulu agar ID project dan organisasi tersedia. Jik
 - Pendaftaran/masuk Firebase Authentication dengan sesi cookie HttpOnly yang diverifikasi server menggunakan Firebase Admin.
 - Login menerima email atau username yang terdaftar pada profil Firestore.
 - Dashboard pendaki dan dashboard staf berbasis role; data staf dibatasi pada satu Basecamp.
+- Pengajuan rombongan mencatat nama anggota selain pemohon dan memvalidasi jumlahnya terhadap ukuran rombongan.
 - Pengelolaan Basecamp, pembuatan akun staf dengan sandi sementara, penggantian sandi wajib saat login pertama, dan pencabutan akses.
 - Endpoint pendaftaran, pencatatan keuangan, dan pengelolaan informasi yang memeriksa role pada server.
 - Unggah dokumen privat ke Drive melalui GAS dengan metadata di Firestore.

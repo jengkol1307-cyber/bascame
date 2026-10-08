@@ -133,6 +133,7 @@ function localDateTime(value: string) {
 export function TrackingMap() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
+  const lastFittedRegistration = useRef<string | null>(null);
   const [points, setPoints] = useState<TrackPoint[]>([]);
   const [incidents, setIncidents] = useState<SosPoint[]>([]);
   const [selectedRegistration, setSelectedRegistration] = useState("");
@@ -242,6 +243,17 @@ export function TrackingMap() {
       map.addSource("hiker-locations", { type: "geojson", data: EMPTY_COLLECTION });
       map.addSource("sos-locations", { type: "geojson", data: EMPTY_COLLECTION });
       map.addLayer({
+        id: "sos-location-points",
+        type: "circle",
+        source: "sos-locations",
+        paint: {
+          "circle-radius": 13,
+          "circle-color": "#c54035",
+          "circle-stroke-width": 2,
+          "circle-stroke-color": "#ffffff",
+        },
+      });
+      map.addLayer({
         id: "hiker-track-lines",
         type: "line",
         source: "hiker-tracks",
@@ -256,19 +268,8 @@ export function TrackingMap() {
         type: "circle",
         source: "hiker-locations",
         paint: {
-          "circle-radius": 7,
+          "circle-radius": 9,
           "circle-color": ["case", ["get", "isStale"], "#cf8b30", "#277651"],
-          "circle-stroke-width": 2,
-          "circle-stroke-color": "#ffffff",
-        },
-      });
-      map.addLayer({
-        id: "sos-location-points",
-        type: "circle",
-        source: "sos-locations",
-        paint: {
-          "circle-radius": 10,
-          "circle-color": "#c54035",
           "circle-stroke-width": 3,
           "circle-stroke-color": "#ffffff",
         },
@@ -332,10 +333,35 @@ export function TrackingMap() {
       (map.getSource("hiker-tracks") as GeoJSONSource | undefined)?.setData(tracks);
       (map.getSource("hiker-locations") as GeoJSONSource | undefined)?.setData(markers);
       (map.getSource("sos-locations") as GeoJSONSource | undefined)?.setData(sos);
+      if (loading || lastFittedRegistration.current === selectedRegistration) return;
+
+      const coordinates: [number, number][] = [];
+      for (const collection of [markers, sos]) {
+        collection.features.forEach((feature) => {
+          if (feature.geometry.type === "Point") {
+            coordinates.push([
+              feature.geometry.coordinates[0],
+              feature.geometry.coordinates[1],
+            ]);
+          }
+        });
+      }
+      if (coordinates.length === 0) return;
+
+      lastFittedRegistration.current = selectedRegistration;
+      const longitudes = coordinates.map(([longitude]) => longitude);
+      const latitudes = coordinates.map(([, latitude]) => latitude);
+      const southwest: [number, number] = [Math.min(...longitudes), Math.min(...latitudes)];
+      const northeast: [number, number] = [Math.max(...longitudes), Math.max(...latitudes)];
+      if (southwest[0] === northeast[0] && southwest[1] === northeast[1]) {
+        map.flyTo({ center: southwest, zoom: 14, duration: 600 });
+      } else {
+        map.fitBounds([southwest, northeast], { padding: 56, maxZoom: 14, duration: 600 });
+      }
     };
     if (map.isStyleLoaded()) update();
     else map.once("load", update);
-  }, [tracks, markers, sos]);
+  }, [tracks, markers, sos, loading, selectedRegistration]);
 
   const registrationOptions = useMemo(() => {
     const choices = new Map<string, TrackPoint>();

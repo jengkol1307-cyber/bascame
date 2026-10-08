@@ -21,6 +21,7 @@ type Registration = {
   startDate: string;
   endDate: string;
   groupSize: number;
+  memberNames?: string[];
   status: string;
   ticketCode?: string | null;
   emergencyContactName?: string;
@@ -39,7 +40,7 @@ type EditingRegistration = Pick<
   | "emergencyContactName"
   | "emergencyContactPhone"
   | "notes"
->;
+> & { memberNames: string[] };
 
 type Props = {
   initialMountainId?: string;
@@ -76,6 +77,10 @@ function isMountainOpen(status: string) {
   return ["buka", "dibuka", "open"].includes(status.trim().toLocaleLowerCase("id-ID"));
 }
 
+function resizeMemberNames(names: string[], groupSize: number) {
+  return Array.from({ length: Math.max(0, Math.min(19, groupSize - 1)) }, (_, index) => names[index] ?? "");
+}
+
 export function TripManager({ initialMountainId = "" }: Props) {
   const [mountains, setMountains] = useState<Mountain[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
@@ -85,6 +90,8 @@ export function TripManager({ initialMountainId = "" }: Props) {
   const [notice, setNotice] = useState("");
   const [editing, setEditing] = useState<EditingRegistration | null>(null);
   const [mutatingId, setMutatingId] = useState("");
+  const [groupSize, setGroupSize] = useState(1);
+  const [memberNames, setMemberNames] = useState<string[]>([]);
   const openMountains = mountains.filter((mountain) => isMountainOpen(mountain.status));
   const currentTrips = registrations.filter((trip) => !isHistoryTrip(trip.status));
   const historyTrips = registrations.filter((trip) => isHistoryTrip(trip.status));
@@ -131,6 +138,7 @@ export function TripManager({ initialMountainId = "" }: Props) {
       startDate: String(values.get("startDate") ?? ""),
       endDate: String(values.get("endDate") ?? ""),
       groupSize: Number(values.get("groupSize")),
+      memberNames: values.getAll("memberNames").map((name) => String(name)),
       emergencyContactName: String(values.get("emergencyContactName") ?? ""),
       emergencyContactPhone: String(values.get("emergencyContactPhone") ?? ""),
       notes: String(values.get("notes") ?? ""),
@@ -147,6 +155,8 @@ export function TripManager({ initialMountainId = "" }: Props) {
       if (!response.ok) throw new Error(result.error ?? "Pendaftaran gagal.");
       setNotice("Pengajuan pendakian berhasil dikirim. Menunggu verifikasi pengelola.");
       form.reset();
+      setGroupSize(1);
+      setMemberNames([]);
       await loadData();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Pendaftaran gagal.");
@@ -164,6 +174,7 @@ export function TripManager({ initialMountainId = "" }: Props) {
       startDate: trip.startDate,
       endDate: trip.endDate,
       groupSize: trip.groupSize,
+      memberNames: resizeMemberNames(trip.memberNames ?? [], trip.groupSize),
       emergencyContactName: trip.emergencyContactName ?? "",
       emergencyContactPhone: trip.emergencyContactPhone ?? "",
       notes: trip.notes ?? "",
@@ -186,6 +197,7 @@ export function TripManager({ initialMountainId = "" }: Props) {
           startDate: editing.startDate,
           endDate: editing.endDate,
           groupSize: editing.groupSize,
+          memberNames: resizeMemberNames(editing.memberNames, editing.groupSize),
           emergencyContactName: editing.emergencyContactName,
           emergencyContactPhone: editing.emergencyContactPhone,
           notes: editing.notes,
@@ -254,8 +266,29 @@ export function TripManager({ initialMountainId = "" }: Props) {
             <div className="hiker-form-row">
               <label className="form-field">Tanggal mulai<input type="date" name="startDate" min={localDate(0)} required /></label>
               <label className="form-field">Tanggal selesai<input type="date" name="endDate" min={localDate(0)} required /></label>
-              <label className="form-field">Jumlah anggota<input type="number" name="groupSize" min="1" max="20" defaultValue="1" required /></label>
+              <label className="form-field">Jumlah anggota<input type="number" name="groupSize" min="1" max="20" value={groupSize} onChange={(event) => {
+                const size = Number(event.target.value);
+                setGroupSize(size);
+                setMemberNames((current) => resizeMemberNames(current, size));
+              }} required /></label>
             </div>
+            {memberNames.map((name, index) => (
+              <label className="form-field" key={index}>
+                Nama anggota lain {index + 1}
+                <input
+                  type="text"
+                  name="memberNames"
+                  value={name}
+                  onChange={(event) => setMemberNames((current) =>
+                    current.map((currentName, nameIndex) => nameIndex === index ? event.target.value : currentName),
+                  )}
+                  minLength={2}
+                  maxLength={80}
+                  required
+                />
+              </label>
+            ))}
+            {groupSize > 1 && <small>Masukkan nama anggota selain pemohon. Jumlah anggota sudah termasuk pemohon.</small>}
             <div className="hiker-form-row">
               <label className="form-field">Nama kontak darurat<input type="text" name="emergencyContactName" minLength={2} maxLength={80} required /></label>
               <label className="form-field">Telepon kontak darurat<input type="tel" name="emergencyContactPhone" minLength={6} maxLength={32} required /></label>
@@ -292,6 +325,7 @@ export function TripManager({ initialMountainId = "" }: Props) {
                   <div className="hiker-list-content">
                     <strong>{trip.mountainName}</strong>
                     <span>{trip.startDate} – {trip.endDate} · {trip.groupSize} anggota</span>
+                    {trip.groupSize > 1 && <span>Anggota lain: {trip.memberNames?.length ? trip.memberNames.join(", ") : "Belum tercatat"}</span>}
                     {trip.ticketCode && <span>Kode tiket: {trip.ticketCode}</span>}
                     {trip.decisionNote && <span className="hiker-revision-note">Catatan pengelola: {trip.decisionNote}</span>}
                   </div>
@@ -349,8 +383,30 @@ export function TripManager({ initialMountainId = "" }: Props) {
                     <div className="hiker-form-row">
                       <label className="form-field">Tanggal mulai<input type="date" min={localDate(0)} value={editing.startDate} onChange={(event) => setEditing({ ...editing, startDate: event.target.value })} required /></label>
                       <label className="form-field">Tanggal selesai<input type="date" min={localDate(0)} value={editing.endDate} onChange={(event) => setEditing({ ...editing, endDate: event.target.value })} required /></label>
-                      <label className="form-field">Jumlah anggota<input type="number" min="1" max="20" value={editing.groupSize} onChange={(event) => setEditing({ ...editing, groupSize: Number(event.target.value) })} required /></label>
+                      <label className="form-field">Jumlah anggota<input type="number" min="1" max="20" value={editing.groupSize} onChange={(event) => {
+                        const size = Number(event.target.value);
+                        setEditing({ ...editing, groupSize: size, memberNames: resizeMemberNames(editing.memberNames, size) });
+                      }} required /></label>
                     </div>
+                    {editing.memberNames.map((name, index) => (
+                      <label className="form-field" key={index}>
+                        Nama anggota lain {index + 1}
+                        <input
+                          type="text"
+                          value={name}
+                          onChange={(event) => setEditing({
+                            ...editing,
+                            memberNames: editing.memberNames.map((currentName, nameIndex) =>
+                              nameIndex === index ? event.target.value : currentName,
+                            ),
+                          })}
+                          minLength={2}
+                          maxLength={80}
+                          required
+                        />
+                      </label>
+                    ))}
+                    {editing.groupSize > 1 && <small>Masukkan nama anggota selain pemohon. Jumlah anggota sudah termasuk pemohon.</small>}
                     <div className="hiker-form-row">
                       <label className="form-field">Nama kontak darurat<input value={editing.emergencyContactName} onChange={(event) => setEditing({ ...editing, emergencyContactName: event.target.value })} minLength={2} maxLength={80} required /></label>
                       <label className="form-field">Telepon kontak darurat<input type="tel" value={editing.emergencyContactPhone} onChange={(event) => setEditing({ ...editing, emergencyContactPhone: event.target.value })} minLength={6} maxLength={32} required /></label>
@@ -376,6 +432,7 @@ export function TripManager({ initialMountainId = "" }: Props) {
                       <div className="hiker-list-content">
                         <strong>{trip.mountainName}</strong>
                         <span>{trip.startDate} – {trip.endDate} · {trip.groupSize} anggota</span>
+                        {trip.groupSize > 1 && <span>Anggota lain: {trip.memberNames?.length ? trip.memberNames.join(", ") : "Belum tercatat"}</span>}
                       </div>
                       <span className={`hiker-badge hiker-badge-${trip.status}`}>{statusLabel(trip.status)}</span>
                     </div>

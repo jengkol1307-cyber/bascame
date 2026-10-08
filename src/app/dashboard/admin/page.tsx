@@ -170,7 +170,9 @@ async function getDashboardMetrics(
   }
 }
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({
+  searchParams,
+}: PageProps<"/dashboard/admin">) {
   const user = await getSessionUser();
   if (!user) redirect("/login");
   const role = getUserRole(user);
@@ -240,6 +242,12 @@ export default async function AdminDashboardPage() {
   }
 
   const summary = await getDashboardMetrics(user, role);
+  const { panel: requestedPanel } = await searchParams;
+  const initialPanelId =
+    typeof requestedPanel === "string" &&
+    panels.some((panel) => panel.id === requestedPanel)
+      ? requestedPanel
+      : "overview";
   const displayName = String(user.name ?? user.username ?? user.email ?? "Admin Basecamp");
   const initials = displayName
     .split(/[\s@._-]+/)
@@ -258,6 +266,7 @@ export default async function AdminDashboardPage() {
       metrics={summary.metrics}
       summaryError={summary.error}
       panels={panels}
+      initialPanelId={initialPanelId}
     />
   );
 }

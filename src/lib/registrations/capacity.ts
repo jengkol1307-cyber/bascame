@@ -11,6 +11,7 @@ export type HikerRegistrationInput = {
   endDate: string;
   days: string[];
   groupSize: number;
+  memberNames: string[];
   emergencyContactName: string;
   emergencyContactPhone: string;
   notes: string;
@@ -73,6 +74,13 @@ export function parseHikerRegistrationInput(
     !Number.isInteger(body.groupSize) ||
     body.groupSize < 1 ||
     body.groupSize > 20 ||
+    (body.groupSize > 1 &&
+      (!Array.isArray(body.memberNames) || body.memberNames.length !== body.groupSize - 1)) ||
+    (body.memberNames !== undefined &&
+      (!Array.isArray(body.memberNames) || body.memberNames.length !== body.groupSize - 1 ||
+        body.memberNames.some((name) =>
+          typeof name !== "string" || name.trim().length < 2 || name.trim().length > 80,
+        ))) ||
     typeof body.emergencyContactName !== "string" ||
     typeof body.emergencyContactPhone !== "string" ||
     (body.notes !== undefined && typeof body.notes !== "string")
@@ -91,6 +99,11 @@ export function parseHikerRegistrationInput(
 
   const emergencyContactName = body.emergencyContactName.trim();
   const emergencyContactPhone = body.emergencyContactPhone.trim();
+  const memberNames = Array.isArray(body.memberNames)
+    ? body.memberNames
+        .filter((name): name is string => typeof name === "string")
+        .map((name) => name.trim())
+    : [];
   const notes = typeof body.notes === "string" ? body.notes.trim() : "";
   if (
     emergencyContactName.length < 2 ||
@@ -108,6 +121,7 @@ export function parseHikerRegistrationInput(
     endDate,
     days,
     groupSize: body.groupSize,
+    memberNames,
     emergencyContactName,
     emergencyContactPhone,
     notes,

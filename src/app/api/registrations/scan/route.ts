@@ -91,6 +91,9 @@ export async function POST(request: Request) {
         startDate: typeof data.startDate === "string" ? data.startDate : "",
         endDate: typeof data.endDate === "string" ? data.endDate : "",
         groupSize: typeof data.groupSize === "number" ? data.groupSize : null,
+        memberNames: Array.isArray(data.memberNames)
+          ? data.memberNames.filter((name): name is string => typeof name === "string")
+          : [],
       };
     });
     return NextResponse.json({ ok: true, ...result });

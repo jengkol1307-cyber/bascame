@@ -58,7 +58,15 @@ export async function GET(request: Request) {
             status: data.status,
           };
         }
-        if (role !== "field_officer") return { id, ...data };
+        if (role !== "field_officer") {
+          return {
+            id,
+            ...data,
+            memberNames: Array.isArray(data.memberNames)
+              ? data.memberNames.filter((name): name is string => typeof name === "string")
+              : [],
+          };
+        }
         return {
           id,
           ownerName: data.ownerName,
@@ -67,6 +75,9 @@ export async function GET(request: Request) {
           startDate: data.startDate,
           endDate: data.endDate,
           groupSize: data.groupSize,
+          memberNames: Array.isArray(data.memberNames)
+            ? data.memberNames.filter((name): name is string => typeof name === "string")
+            : [],
           status: data.status,
           ticketCode: data.ticketCode,
           checkedInAt: data.checkedInAt,
@@ -164,6 +175,7 @@ export async function POST(request: Request) {
         startDate: input.startDate,
         endDate: input.endDate,
         groupSize: input.groupSize,
+        memberNames: input.memberNames,
         emergencyContactName: input.emergencyContactName,
         emergencyContactPhone: input.emergencyContactPhone,
         notes: input.notes,

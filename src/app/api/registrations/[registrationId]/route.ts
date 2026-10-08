@@ -153,6 +153,7 @@ async function updateOwnRegistration(
         startDate: input.startDate,
         endDate: input.endDate,
         groupSize: input.groupSize,
+        memberNames: input.memberNames,
         emergencyContactName: input.emergencyContactName,
         emergencyContactPhone: input.emergencyContactPhone,
         notes: input.notes,

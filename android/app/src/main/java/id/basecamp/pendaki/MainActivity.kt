@@ -55,6 +55,7 @@ private data class HikerTrip(
     val longitude: Double?,
     val mountainId: String = "",
     val groupSize: Int = 1,
+    val memberNames: List<String> = emptyList(),
     val emergencyContactName: String = "",
     val emergencyContactPhone: String = "",
     val notes: String = "",
@@ -869,6 +870,12 @@ class MainActivity : AppCompatActivity() {
                 setTextColor(Color.rgb(35, 49, 40))
             })
             card.addView(text("${trip.startDate} – ${trip.endDate}"))
+            if (trip.groupSize > 1) {
+                card.addView(text(
+                    if (trip.memberNames.isEmpty()) "Anggota lain: Belum tercatat"
+                    else "Anggota lain: ${trip.memberNames.joinToString(", ")}",
+                ))
+            }
             val badge = text(tripStatusLabel(trip.status))
             badge.textSize = 12f
             badge.setTypeface(badge.typeface, Typeface.BOLD)
@@ -1934,6 +1941,32 @@ class MainActivity : AppCompatActivity() {
 
         val groupSize = input("Jumlah pendaki", android.text.InputType.TYPE_CLASS_NUMBER)
             .apply { setText(existingTrip?.groupSize?.toString() ?: "1"); setSingleLine(true) }
+        val memberNamesLabel = fieldLabel("Nama anggota lain")
+        val memberNames = input(
+            "Satu nama anggota per baris",
+            android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE,
+        ).apply {
+            minLines = 2
+            maxLines = 6
+            setText(existingTrip?.memberNames?.joinToString("\n").orEmpty())
+        }
+        val memberNamesHint = text("Isi nama selain pemohon. Jumlah pendaki sudah termasuk pemohon.")
+        fun updateMemberNamesVisibility() {
+            val companionCount = ((groupSize.text.toString().toIntOrNull() ?: 1) - 1).coerceAtLeast(0)
+            val visible = companionCount > 0
+            memberNamesLabel.visibility = if (visible) View.VISIBLE else View.GONE
+            memberNames.visibility = if (visible) View.VISIBLE else View.GONE
+            memberNamesHint.visibility = if (visible) View.VISIBLE else View.GONE
+            memberNamesLabel.text = "Nama anggota lain ($companionCount)"
+        }
+        groupSize.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                updateMemberNamesVisibility()
+            }
+            override fun afterTextChanged(s: android.text.Editable?) = Unit
+        })
+        updateMemberNamesVisibility()
         val emergencyName = input("Nama kontak darurat", android.text.InputType.TYPE_CLASS_TEXT)
             .apply {
                 setText(existingTrip?.emergencyContactName ?: hikerProfile?.emergencyContactName.orEmpty())
@@ -1956,6 +1989,9 @@ class MainActivity : AppCompatActivity() {
             addView(endDate)
             addView(fieldLabel("Jumlah pendaki (maksimal 20)"))
             addView(groupSize)
+            addView(memberNamesLabel)
+            addView(memberNames)
+            addView(memberNamesHint)
             addView(fieldLabel("Kontak darurat (wajib)"))
             addView(emergencyName)
             addView(fieldLabel("Nomor telepon kontak darurat"))
@@ -1991,6 +2027,15 @@ class MainActivity : AppCompatActivity() {
                     groupSize.error = "Jumlah pendaki harus 1 sampai 20."
                     return@setOnClickListener
                 }
+                val companions = memberNames.text.toString()
+                    .lineSequence()
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .toList()
+                if (companions.size != size - 1 || companions.any { it.length !in 2..80 }) {
+                    memberNames.error = "Isi tepat ${size - 1} nama anggota lain (masing-masing 2-80 karakter)."
+                    return@setOnClickListener
+                }
                 if (contactName.length !in 2..80 || contactPhone.length !in 6..32 || note.length > 500) {
                     showMessage("Lengkapi kontak darurat dengan benar. Catatan maksimal 500 karakter.")
                     return@setOnClickListener
@@ -2000,6 +2045,7 @@ class MainActivity : AppCompatActivity() {
                     .put("startDate", start)
                     .put("endDate", end)
                     .put("groupSize", size)
+                    .put("memberNames", org.json.JSONArray(companions))
                     .put("emergencyContactName", contactName)
                     .put("emergencyContactPhone", contactPhone)
                     .put("notes", note)
@@ -2062,6 +2108,11 @@ class MainActivity : AppCompatActivity() {
                             ?.optDouble("mountainLongitude"),
                         mountainId = item.optString("mountainId"),
                         groupSize = item.optInt("groupSize", 1),
+                        memberNames = item.optJSONArray("memberNames")?.let { names ->
+                            (0 until names.length()).mapNotNull { nameIndex ->
+                                names.optString(nameIndex).trim().takeIf(String::isNotEmpty)
+                            }
+                        }.orEmpty(),
                         emergencyContactName = item.optString("emergencyContactName"),
                         emergencyContactPhone = item.optString("emergencyContactPhone"),
                         notes = item.optString("notes"),
@@ -2307,7 +2358,8 @@ class MainActivity : AppCompatActivity() {
             val sos = database.queuedSosCount()
             if (points > 0 || sos > 0) LocationUploadWorker.enqueueNow(this)
             runOnUiThread {
-                view.text = "Antrean perangkat: $points titik GPS, $sos SOS. SOS baru terkonfirmasi setelah berhasil diterima server."
+                view.text =
+                    "Antrean perangkat: $points titik GPS, $sos SOS. Data keluar dari antrean setelah server berhasil menerima; titik GPS tetap tersimpan di histori. SOS terkonfirmasi setelah diterima server."
             }
         }
     }
