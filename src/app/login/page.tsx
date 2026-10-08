@@ -3,6 +3,34 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
+type AuthResponse = {
+  error?: string;
+  mustChangePassword?: boolean;
+  destination?: string;
+};
+
+async function readAuthResponse(response: Response): Promise<AuthResponse> {
+  const responseText = await response.text();
+  if (!responseText.trim()) {
+    throw new Error(
+      `Server tidak mengirim respons login (HTTP ${response.status}). Coba lagi, lalu periksa log deployment jika masalah berlanjut.`,
+    );
+  }
+
+  let result: unknown;
+  try {
+    result = JSON.parse(responseText);
+  } catch {
+    throw new Error(
+      `Respons server tidak valid (HTTP ${response.status}). Coba lagi, lalu periksa log deployment jika masalah berlanjut.`,
+    );
+  }
+  if (typeof result !== "object" || result === null || Array.isArray(result)) {
+    throw new Error(`Respons server tidak valid (HTTP ${response.status}).`);
+  }
+  return result as AuthResponse;
+}
+
 export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -28,11 +56,7 @@ export default function LoginPage() {
         body: JSON.stringify({ identifier, password }),
       });
 
-      const result = (await response.json()) as {
-        error?: string;
-        mustChangePassword?: boolean;
-        destination?: string;
-      };
+      const result = await readAuthResponse(response);
       if (!response.ok) {
         throw new Error(result.error ?? "Tidak dapat masuk.");
       }
@@ -78,10 +102,7 @@ export default function LoginPage() {
           newPassword,
         }),
       });
-      const result = (await response.json()) as {
-        error?: string;
-        destination?: string;
-      };
+      const result = await readAuthResponse(response);
       if (!response.ok) throw new Error(result.error ?? "Sandi belum dapat diperbarui.");
       window.location.replace(
         new URL(result.destination ?? "/dashboard", window.location.origin),

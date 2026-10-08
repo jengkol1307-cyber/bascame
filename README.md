@@ -63,6 +63,8 @@ Workflow `.github/workflows/vercel.yml` menjalankan lint dan build Vercel untuk 
 
 Tambahkan semua variabel aplikasi dari `.env.example` pada **Vercel Project → Settings → Environment Variables** untuk environment Production dan Preview yang digunakan. Vercel CLI membangun dan mengirim prebuilt deployment; variabel runtime Firebase Admin dan GAS harus tersedia di konfigurasi project Vercel. Jangan masukkan service account atau rahasia GAS ke variabel `NEXT_PUBLIC_*`.
 
+Gunakan Node.js 24 untuk build dan Functions. `package.json` juga mengunci `jose` transitif milik `jwks-rsa` ke rilis CommonJS agar verifikasi Firebase Admin tidak gagal saat pemuatan modul; jangan hapus override tanpa menguji login pada deployment Vercel.
+
 Buat project Vercel terlebih dahulu agar ID project dan organisasi tersedia. Jika project juga mengaktifkan integrasi GitHub bawaan Vercel, nonaktifkan salah satu mekanisme deploy agar tidak membuat deployment ganda.
 
 ## Ruang lingkup fondasi
