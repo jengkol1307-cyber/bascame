@@ -262,10 +262,7 @@ button, input { font: inherit; }
 .tracking-legend-dot { background: #277651; }
 .tracking-legend-sos { background: #c54035; }
 .tracking-map-canvas { width: 100%; height: min(58vh, 560px); min-height: 340px; overflow: hidden; border: 1px solid #dfe6df; border-radius: 10px; background: #eef2ec; }
-.tracking-map-unconfigured, .tracking-map-empty, .tracking-map-loading { padding: 16px; border: 1px dashed #dfe6df; border-radius: 8px; color: #6c7b71; font-size: 11px; line-height: 1.7; }
-.tracking-map-unconfigured { display: grid; gap: 5px; background: #f8faf7; }
-.tracking-map-unconfigured strong { color: #34483c; }
-.tracking-map-unconfigured code { padding: 2px 4px; border-radius: 4px; background: #eef2ee; }
+.tracking-map-empty, .tracking-map-loading { padding: 16px; border: 1px dashed #dfe6df; border-radius: 8px; color: #6c7b71; font-size: 11px; line-height: 1.7; }
 .tracking-active-alert { padding: 11px 13px; border: 1px solid #edc9c1; border-radius: 8px; background: #fff4f1; color: #923d32; font-size: 11px; font-weight: 700; }
 .tracking-map-empty, .tracking-map-loading { margin: 0; }
 .hiker-list-row { min-height: 68px; display: flex; align-items: center; gap: 13px; border-bottom: 1px solid var(--line); }

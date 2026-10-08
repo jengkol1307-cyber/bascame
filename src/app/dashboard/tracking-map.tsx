@@ -1,6 +1,12 @@
 "use client";
 
-import { Map as MapLibreMap, NavigationControl, Popup, type GeoJSONSource } from "maplibre-gl";
+import {
+  Map as MapLibreMap,
+  NavigationControl,
+  Popup,
+  setWorkerUrl,
+  type GeoJSONSource,
+} from "maplibre-gl";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type TrackPoint = {
@@ -131,9 +137,11 @@ export function TrackingMap() {
   const [incidents, setIncidents] = useState<SosPoint[]>([]);
   const [selectedRegistration, setSelectedRegistration] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [trackingError, setTrackingError] = useState("");
+  const [sosError, setSosError] = useState("");
+  const [mapError, setMapError] = useState("");
   const [truncated, setTruncated] = useState(false);
-  const apiKey = process.env.NEXT_PUBLIC_MAPTILER_API_KEY?.trim() ?? "";
+  const error = trackingError || sosError;
   const { tracks, markers, sos } = useMemo(
     () => asFeatureCollection(points, incidents, selectedRegistration),
     [points, incidents, selectedRegistration],
@@ -141,28 +149,34 @@ export function TrackingMap() {
 
   async function loadTrackingData() {
     try {
-      const [trackingResponse, sosResponse] = await Promise.all([
-        fetch("/api/tracking", { cache: "no-store" }),
-        fetch("/api/sos", { cache: "no-store" }),
-      ]);
-      const [trackingResult, sosResult] = await Promise.all([
-        trackingResponse.json() as Promise<{
-          points?: TrackPoint[];
-          truncated?: boolean;
-          error?: string;
-        }>,
-        sosResponse.json() as Promise<{ incidents?: SosPoint[]; error?: string }>,
-      ]);
+      const trackingResponse = await fetch("/api/tracking", { cache: "no-store" });
+      const trackingResult = (await trackingResponse.json()) as {
+        points?: TrackPoint[];
+        truncated?: boolean;
+        error?: string;
+      };
       if (!trackingResponse.ok) throw new Error(trackingResult.error ?? "Histori lokasi belum dapat dimuat.");
-      if (!sosResponse.ok) throw new Error(sosResult.error ?? "Laporan SOS belum dapat dimuat.");
       setPoints(trackingResult.points ?? []);
-      setIncidents(sosResult.incidents ?? []);
       setTruncated(trackingResult.truncated ?? false);
-      setError("");
+      setTrackingError("");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Data pelacakan belum dapat dimuat.");
+      setTrackingError(cause instanceof Error ? cause.message : "Data pelacakan belum dapat dimuat.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadActiveSos(): Promise<boolean> {
+    try {
+      const response = await fetch("/api/sos?active=1", { cache: "no-store" });
+      const result = (await response.json()) as { incidents?: SosPoint[]; error?: string };
+      if (!response.ok) throw new Error(result.error ?? "Laporan SOS belum dapat dimuat.");
+      setIncidents(result.incidents ?? []);
+      setSosError("");
+      return true;
+    } catch (cause) {
+      setSosError(cause instanceof Error ? cause.message : "Laporan SOS belum dapat dimuat.");
+      return false;
     }
   }
 
@@ -171,7 +185,7 @@ export function TrackingMap() {
     let timer = 0;
     async function poll() {
       if (cancelled) return;
-      await loadTrackingData();
+      await Promise.all([loadTrackingData(), loadActiveSos()]);
       if (!cancelled) timer = window.setTimeout(() => void poll(), 30_000);
     }
     void poll();
@@ -182,15 +196,47 @@ export function TrackingMap() {
   }, []);
 
   useEffect(() => {
-    if (!mapContainerRef.current || !apiKey || mapRef.current) return;
+    let cancelled = false;
+    let timer = 0;
+    async function pollLiveSos() {
+      if (cancelled) return;
+      let nextDelay = 2_000;
+      if (!await loadActiveSos()) nextDelay = 10_000;
+      if (!cancelled) timer = window.setTimeout(() => void pollLiveSos(), nextDelay);
+    }
+    void pollLiveSos();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+    setWorkerUrl(new URL("/maplibre-gl-worker.mjs", window.location.origin).href);
     const map = new MapLibreMap({
       container: mapContainerRef.current,
-      style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${encodeURIComponent(apiKey)}`,
+      style: {
+        version: 8,
+        sources: {
+          openstreetmap: {
+            type: "raster",
+            tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+            tileSize: 256,
+            attribution: '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>',
+          },
+        },
+        layers: [{ id: "openstreetmap-tiles", type: "raster", source: "openstreetmap" }],
+      },
       center: [110.4, -7.3],
       zoom: 8,
       attributionControl: { compact: true },
     });
     map.addControl(new NavigationControl(), "top-right");
+    map.on("error", (event) => {
+      console.error("MapLibre map error:", event.error);
+      setMapError(`Peta gagal dimuat: ${event.error.message}`);
+    });
     map.on("load", () => {
       map.addSource("hiker-tracks", { type: "geojson", data: EMPTY_COLLECTION });
       map.addSource("hiker-locations", { type: "geojson", data: EMPTY_COLLECTION });
@@ -277,7 +323,7 @@ export function TrackingMap() {
       map.remove();
       mapRef.current = null;
     };
-  }, [apiKey]);
+  }, []);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -309,7 +355,7 @@ export function TrackingMap() {
         <div>
           <span className="admin-kicker">POSISI & HISTORI PERJALANAN</span>
           <h2>Peta pelacakan pendaki</h2>
-          <p>Sinyal diperbarui setiap 30 detik pada dashboard ini; rekaman pendaki mengikuti jadwal perangkat.</p>
+          <p>SOS aktif diperbarui cepat; rekaman jalur GPS mengikuti jadwal perangkat.</p>
         </div>
         <button className="button button-secondary" type="button" onClick={() => void loadTrackingData()}>
           Muat ulang
@@ -344,17 +390,8 @@ export function TrackingMap() {
         <span><i className="tracking-legend-dot" /> Sinyal terbaru</span>
         <span><i className="tracking-legend-sos" /> SOS aktif</span>
       </div>
-      {apiKey ? (
-        <div ref={mapContainerRef} className="tracking-map-canvas" aria-label="Peta histori dan posisi pendaki" />
-      ) : (
-        <div className="tracking-map-unconfigured">
-          <strong>Kunci peta belum diatur.</strong>
-          <span>
-            Tambahkan <code>NEXT_PUBLIC_MAPTILER_API_KEY</code> ke environment Vercel dan lokal untuk
-            menampilkan peta MapTiler.
-          </span>
-        </div>
-      )}
+      <div ref={mapContainerRef} className="tracking-map-canvas" aria-label="Peta histori dan posisi pendaki" />
+      {mapError && <p className="auth-error" role="alert">{mapError}</p>}
       {loading && <p className="tracking-map-loading">Memuat histori GPS dan laporan SOS...</p>}
       {points.length === 0 && !loading && (
         <p className="tracking-map-empty">Belum ada sinyal lokasi. Sinyal akan muncul setelah APK mengirim titik GPS pendaki.</p>

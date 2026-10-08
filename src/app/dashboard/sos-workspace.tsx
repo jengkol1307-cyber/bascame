@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type SosStatus = "open" | "acknowledged" | "dispatched" | "resolved" | "false_alarm";
 type SosCategory = "medical" | "injury" | "lost" | "other";
@@ -78,7 +78,7 @@ function responseError(payload: { error?: string }, fallback: string) {
 }
 
 async function readSosResponse(response: Response) {
-  return (await response.json()) as { incidents?: SosIncident[]; error?: string };
+  return (await response.json()) as { incidents?: SosIncident[]; error?: string; warning?: string };
 }
 
 function requestDeviceLocation(): Promise<{ location: SosLocation | null; error: string }> {
@@ -104,6 +104,7 @@ function requestDeviceLocation(): Promise<{ location: SosLocation | null; error:
 
 export function HikerSosPanel({ trips }: { trips: HikerTrip[] }) {
   const [incidents, setIncidents] = useState<SosIncident[]>([]);
+  const [liveIncidents, setLiveIncidents] = useState<SosIncident[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -112,9 +113,14 @@ export function HikerSosPanel({ trips }: { trips: HikerTrip[] }) {
   const [description, setDescription] = useState("");
   const [sendingTripId, setSendingTripId] = useState("");
   const [locationNotice, setLocationNotice] = useState("");
+  const pendingRequest = useRef<{ tripId: string; id: string } | null>(null);
   const activeTrips = trips.filter((trip) => trip.status === "checked_in");
   const tripIds = new Set(trips.map((trip) => trip.id));
-  const visibleIncidents = incidents.filter((incident) => tripIds.has(incident.registrationId));
+  const previousLiveIds = useRef(new Set<string>());
+  const incidentsById = new Map(incidents.map((incident) => [incident.id, incident]));
+  liveIncidents.forEach((incident) => incidentsById.set(incident.id, incident));
+  const visibleIncidents = [...incidentsById.values()]
+    .filter((incident) => tripIds.has(incident.registrationId));
 
   async function loadIncidents() {
     try {
@@ -122,7 +128,7 @@ export function HikerSosPanel({ trips }: { trips: HikerTrip[] }) {
       const result = await readSosResponse(response);
       if (!response.ok) throw new Error(responseError(result, "Laporan SOS belum dapat dimuat."));
       setIncidents(result.incidents ?? []);
-      setError("");
+      setError(result.warning ?? "");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Laporan SOS belum dapat dimuat.");
     } finally {
@@ -135,11 +141,49 @@ export function HikerSosPanel({ trips }: { trips: HikerTrip[] }) {
     return () => window.clearTimeout(initialLoad);
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    let timeoutId = 0;
+    async function pollLiveSos() {
+      if (cancelled) return;
+      let nextDelay = 2_000;
+      try {
+        const response = await fetch("/api/sos?active=1", {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        const result = await readSosResponse(response);
+        if (!response.ok) throw new Error(responseError(result, "Pembaruan SOS belum dapat dimuat."));
+        const nextIncidents = result.incidents ?? [];
+        const nextIds = new Set(nextIncidents.map((incident) => incident.id));
+        const hasClosedIncident = [...previousLiveIds.current].some((id) => !nextIds.has(id));
+        previousLiveIds.current = nextIds;
+        setLiveIncidents(nextIncidents);
+        if (hasClosedIncident) void loadIncidents();
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Pembaruan SOS belum dapat dimuat.");
+        nextDelay = 10_000;
+      }
+      if (!cancelled) timeoutId = window.setTimeout(() => void pollLiveSos(), nextDelay);
+    }
+    void pollLiveSos();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
   async function sendSos(trip: HikerTrip) {
     setError("");
     setNotice("");
     setLocationNotice("");
     setSendingTripId(trip.id);
+    if (pendingRequest.current?.tripId !== trip.id) {
+      pendingRequest.current = {
+        tripId: trip.id,
+        id: crypto.randomUUID().replaceAll("-", ""),
+      };
+    }
     const locationPromise = requestDeviceLocation();
 
     try {
@@ -149,6 +193,7 @@ export function HikerSosPanel({ trips }: { trips: HikerTrip[] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           registrationId: trip.id,
+          clientRequestId: pendingRequest.current.id,
           category,
           description: description.trim(),
         }),
@@ -160,6 +205,7 @@ export function HikerSosPanel({ trips }: { trips: HikerTrip[] }) {
       setNotice(`SOS untuk ${trip.mountainName} sudah tercatat. Hubungi Basecamp melalui telepon juga.`);
       setConfirmingTripId("");
       setDescription("");
+      pendingRequest.current = null;
       await loadIncidents();
       void locationPromise.then(async ({ location, error: locationError }) => {
         if (!location) {
@@ -327,10 +373,12 @@ export function HikerSosPanel({ trips }: { trips: HikerTrip[] }) {
 
 export function SosManager() {
   const [incidents, setIncidents] = useState<SosIncident[]>([]);
+  const [liveIncidents, setLiveIncidents] = useState<SosIncident[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [updatingId, setUpdatingId] = useState("");
+  const previousLiveIds = useRef(new Set<string>());
 
   async function loadIncidents() {
     try {
@@ -338,7 +386,7 @@ export function SosManager() {
       const result = await readSosResponse(response);
       if (!response.ok) throw new Error(responseError(result, "Laporan SOS belum dapat dimuat."));
       setIncidents(result.incidents ?? []);
-      setError("");
+      setError(result.warning ?? "");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Laporan SOS belum dapat dimuat.");
     } finally {
@@ -360,6 +408,40 @@ export function SosManager() {
       window.clearTimeout(timeoutId);
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    let timeoutId = 0;
+    async function pollLiveSos() {
+      if (cancelled) return;
+      let nextDelay = 2_000;
+      try {
+        const response = await fetch("/api/sos?active=1", { cache: "no-store" });
+        const result = await readSosResponse(response);
+        if (!response.ok) throw new Error(responseError(result, "Pembaruan langsung SOS belum dapat dimuat."));
+        const nextIncidents = result.incidents ?? [];
+        const nextIds = new Set(nextIncidents.map((incident) => incident.id));
+        const hasClosedIncident = [...previousLiveIds.current].some((id) => !nextIds.has(id));
+        previousLiveIds.current = nextIds;
+        setLiveIncidents(nextIncidents);
+        if (hasClosedIncident) void loadIncidents();
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Pembaruan langsung SOS belum dapat dimuat.");
+        nextDelay = 10_000;
+      }
+      if (!cancelled) timeoutId = window.setTimeout(() => void pollLiveSos(), nextDelay);
+    }
+    void pollLiveSos();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  const displayedIncidents = new Map(incidents.map((incident) => [incident.id, incident]));
+  liveIncidents.forEach((incident) => displayedIncidents.set(incident.id, incident));
+  const visibleIncidents = [...displayedIncidents.values()]
+    .sort((left, right) => (right.createdAt ?? "").localeCompare(left.createdAt ?? ""));
 
   async function updateIncident(
     incident: SosIncident,
@@ -394,7 +476,7 @@ export function SosManager() {
         <div>
           <span className="admin-kicker">TANGGAP DARURAT</span>
           <h2>Manajemen SOS pendaki</h2>
-          <p>Daftar diperbarui otomatis setiap 15 detik selama halaman ini terbuka.</p>
+          <p>SOS aktif diperbarui melalui Realtime Database; riwayat disegarkan berkala.</p>
         </div>
         <button className="button button-secondary" type="button" onClick={() => void loadIncidents()}>
           Muat ulang
@@ -407,11 +489,11 @@ export function SosManager() {
       {error && <p className="auth-error" role="alert">{error}</p>}
       {loading ? (
         <p>Memuat laporan SOS...</p>
-      ) : incidents.length === 0 ? (
+      ) : visibleIncidents.length === 0 ? (
         <div className="sos-no-active">Belum ada laporan SOS.</div>
       ) : (
         <div className="sos-incident-list">
-          {incidents.map((incident) => {
+          {visibleIncidents.map((incident) => {
             const isActive = ACTIVE_SOS_STATUSES.includes(incident.status);
             return (
               <article className={`sos-incident-card${isActive ? " is-active" : ""}`} key={incident.id}>

@@ -8,6 +8,11 @@ import {
   hasPermission,
 } from "@/lib/auth/roles";
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
+import {
+  getLiveSosIncidents,
+  syncSosIncidentToRealtimeDatabase,
+  type SosLiveIncident,
+} from "@/lib/firebase/sos-live";
 
 const SOS_CATEGORIES = ["medical", "injury", "lost", "other"] as const;
 const ACTIVE_STATUSES = ["open", "acknowledged", "dispatched"];
@@ -53,7 +58,9 @@ function timestampToIso(value: unknown) {
   return value instanceof Date && !Number.isNaN(value.getTime()) ? value.toISOString() : null;
 }
 
-function serializeIncident(document: FirebaseFirestore.QueryDocumentSnapshot | FirebaseFirestore.DocumentSnapshot) {
+function serializeIncident(
+  document: FirebaseFirestore.QueryDocumentSnapshot | FirebaseFirestore.DocumentSnapshot,
+): SosLiveIncident | null {
   const data = document.data();
   if (!data) return null;
   const history = Array.isArray(data.history)
@@ -99,7 +106,31 @@ export async function GET(request: Request) {
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
 
   const role = getUserRole(user);
+  if (role !== "user" && !hasPermission(user, "sos:manage")) {
+    return NextResponse.json({ error: "Akses ditolak." }, { status: 403 });
+  }
+  const basecampId = getAssignedBasecampId(user);
+  if (
+    role !== "user" &&
+    role !== "admin" &&
+    role !== "superadmin" &&
+    !basecampId
+  ) {
+    return NextResponse.json({ error: "Akun belum ditautkan ke Basecamp." }, { status: 409 });
+  }
+  const liveScope = role === "user"
+    ? { kind: "user" as const, uid: user.uid }
+    : role === "admin" || role === "superadmin"
+      ? { kind: "admin" as const }
+      : { kind: "basecamp" as const, basecampId: basecampId ?? "" };
+
   try {
+    if (new URL(request.url).searchParams.get("active") === "1") {
+      const incidents = (await getLiveSosIncidents(liveScope))
+        .sort((left, right) => (right.createdAt ?? "").localeCompare(left.createdAt ?? ""));
+      return NextResponse.json({ incidents }, { headers: { "Cache-Control": "no-store" } });
+    }
+
     const firestore = getFirebaseAdminFirestore();
     let snapshot: FirebaseFirestore.QuerySnapshot;
     if (role === "user") {
@@ -108,11 +139,7 @@ export async function GET(request: Request) {
         .where("ownerUid", "==", user.uid)
         .limit(50)
         .get();
-    } else if (hasPermission(user, "sos:manage")) {
-      const basecampId = getAssignedBasecampId(user);
-      if (role !== "admin" && role !== "superadmin" && !basecampId) {
-        return NextResponse.json({ error: "Akun belum ditautkan ke Basecamp." }, { status: 409 });
-      }
+    } else {
       snapshot =
         basecampId && role !== "admin" && role !== "superadmin"
           ? await firestore
@@ -121,15 +148,27 @@ export async function GET(request: Request) {
               .limit(100)
               .get()
           : await firestore.collection("sosIncidents").limit(100).get();
-    } else {
-      return NextResponse.json({ error: "Akses ditolak." }, { status: 403 });
     }
 
-    const incidents = snapshot.docs
+    const archivedIncidents = snapshot.docs
       .map(serializeIncident)
-      .filter((incident): incident is NonNullable<typeof incident> => incident !== null)
+      .filter((incident): incident is SosLiveIncident => incident !== null);
+    let liveIncidents: SosLiveIncident[] = [];
+    let realtimeWarning: string | undefined;
+    try {
+      liveIncidents = await getLiveSosIncidents(liveScope);
+    } catch (error) {
+      console.error("Could not load live SOS incidents from Realtime Database:", error);
+      realtimeWarning = "Pembaruan cepat SOS tidak tersedia; data arsip tetap ditampilkan.";
+    }
+    const byId = new Map(archivedIncidents.map((incident) => [incident.id, incident]));
+    liveIncidents.forEach((incident) => byId.set(incident.id, incident));
+    const mergedIncidents = [...byId.values()]
       .sort((left, right) => (right.createdAt ?? "").localeCompare(left.createdAt ?? ""));
-    return NextResponse.json({ incidents }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json(
+      { incidents: mergedIncidents, ...(realtimeWarning ? { warning: realtimeWarning } : {}) },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (error) {
     console.error("Could not load SOS incidents:", error);
     return NextResponse.json({ error: "Data SOS belum dapat dimuat." }, { status: 500 });
@@ -249,6 +288,15 @@ export async function POST(request: Request) {
       transaction.update(registrationRef, { activeSosIncidentId: incidentRef.id });
       return { id: incidentRef.id };
     });
+    try {
+      await syncSosIncidentToRealtimeDatabase(result.id);
+    } catch (error) {
+      console.error("SOS was archived but could not be published to Realtime Database:", error);
+      return NextResponse.json(
+        { error: "SOS sudah tercatat, tetapi notifikasi cepat Basecamp belum tersambung. Hubungi Basecamp melalui telepon." },
+        { status: 503 },
+      );
+    }
     return NextResponse.json({ ok: true, ...result }, { status: 201 });
   } catch (error) {
     if (error instanceof Error) {
@@ -391,6 +439,7 @@ export async function PATCH(request: Request) {
         });
       }
     });
+    await syncSosIncidentToRealtimeDatabase(body.incidentId.trim());
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof Error) {

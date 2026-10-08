@@ -22,7 +22,9 @@ Isi `.env.local` dengan konfigurasi Firebase dan GAS sebelum menggunakan login, 
 4. Deploy `firestore.rules` ke Firestore dan `database.rules.json` ke Realtime Database. Rules client secara default menolak akses yang tidak diizinkan; operasi Admin SDK berjalan di server.
 5. Jangan pernah menetapkan role dari browser. Role diberikan server menggunakan Firebase custom claims; endpoint operasional memeriksa role dan `basecampId`, sedangkan operasi Admin SDK tidak dilindungi oleh Firestore Rules.
 
-Realtime Database disiapkan untuk status operasional cepat. Firestore menyimpan data aplikasi utama dan metadata dokumen; file dokumen tetap privat di Google Drive.
+Realtime Database menyebarkan SOS aktif dan pembaruan status/lokasi dengan cepat; Firestore tetap menjadi arsip permanen dan menyimpan data aplikasi utama. File dokumen tetap privat di Google Drive.
+
+Peta pelacakan dashboard memakai tile OpenStreetMap dan menampilkan atribusi kontributor pada peta; tidak memerlukan kunci MapTiler. Tile publik OpenStreetMap ditujukan untuk penggunaan wajar dan mengikuti [kebijakan tile](https://operations.osmfoundation.org/policies/tiles/); untuk trafik tinggi, gunakan penyedia tile yang sesuai atau host tile sendiri.
 
 ### Role staf dan akun Basecamp
 

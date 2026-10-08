@@ -1,6 +1,7 @@
 import "server-only";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
+import { getDatabaseWithUrl } from "firebase-admin/database";
 import { getFirestore } from "firebase-admin/firestore";
 
 function getFirebaseAdminApp() {
@@ -83,4 +84,12 @@ export function getFirebaseAdminAuth() {
 
 export function getFirebaseAdminFirestore() {
   return getFirestore(getFirebaseAdminApp());
+}
+
+export function getFirebaseAdminRealtimeDatabase() {
+  const databaseUrl = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL?.trim();
+  if (!databaseUrl) {
+    throw new Error("NEXT_PUBLIC_FIREBASE_DATABASE_URL is not configured.");
+  }
+  return getDatabaseWithUrl(databaseUrl, getFirebaseAdminApp());
 }
