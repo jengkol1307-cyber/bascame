@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
-import { getSessionUser } from "@/lib/auth/session";
+import { getRequestUser } from "@/lib/auth/session";
 import { getAssignedBasecampId, hasPermission, isStaffRole } from "@/lib/auth/roles";
 import { getFirebaseAdminAuth, getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 
@@ -13,8 +13,8 @@ type StaffBody = {
   role?: unknown;
 };
 
-async function managerScope() {
-  const user = await getSessionUser();
+async function managerScope(request: Request) {
+  const user = await getRequestUser(request);
   if (!user) return { response: NextResponse.json({ error: "Silakan masuk." }, { status: 401 }) };
   if (!hasPermission(user, "staff:manage")) {
     return { response: NextResponse.json({ error: "Akses ditolak." }, { status: 403 }) };
@@ -31,8 +31,8 @@ async function managerScope() {
   return { user, basecampId };
 }
 
-export async function GET() {
-  const scope = await managerScope();
+export async function GET(request: Request) {
+  const scope = await managerScope(request);
   if (scope.response) return scope.response;
 
   try {
@@ -63,7 +63,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const scope = await managerScope();
+  const scope = await managerScope(request);
   if (scope.response) return scope.response;
   if (!scope.basecampId) {
     return NextResponse.json(
@@ -195,7 +195,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const scope = await managerScope();
+  const scope = await managerScope(request);
   if (scope.response) return scope.response;
   if (!scope.basecampId) {
     return NextResponse.json({ error: "Basecamp admin belum ditetapkan." }, { status: 409 });

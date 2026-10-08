@@ -20,6 +20,10 @@
             android:exported="false"
             android:label="Peta Basecamp offline" />
         <activity
+            android:name=".AdminDashboardActivity"
+            android:exported="false"
+            android:label="Dashboard Basecamp" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

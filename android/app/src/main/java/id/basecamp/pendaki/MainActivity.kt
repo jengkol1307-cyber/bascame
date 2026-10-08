@@ -158,6 +158,8 @@ class MainActivity : AppCompatActivity() {
     private var pageMessage: String? = null
     private var pendingTrackingStart = false
     private var returningFromLocationSettings = false
+    private var roleResolutionInProgress = false
+    private var roleCheckError: String? = null
 
     private val documentPicker =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -214,7 +216,37 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun render() {
-        if (auth.currentUser == null) renderSignIn() else renderHikerDashboard()
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            roleResolutionInProgress = false
+            renderSignIn()
+            return
+        }
+        if (roleResolutionInProgress) return
+
+        roleResolutionInProgress = true
+        setContentViewWithSystemBars(LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            setBackgroundColor(Color.rgb(247, 249, 246))
+            addView(TextView(this@MainActivity).apply {
+                text = "Memeriksa akses akun…"
+                textSize = 16f
+                setTextColor(Color.rgb(55, 73, 59))
+            })
+        })
+        currentUser.getIdToken(false).addOnCompleteListener { task ->
+            roleResolutionInProgress = false
+            if (auth.currentUser?.uid != currentUser.uid) return@addOnCompleteListener
+            if (!task.isSuccessful) {
+                roleCheckError = "Tidak dapat memeriksa akses akun. Periksa koneksi lalu masuk kembali."
+                auth.signOut()
+                renderSignIn()
+                return@addOnCompleteListener
+            }
+            val role = task.result.claims["role"] as? String ?: "user"
+            openDashboardForRole(role)
+        }
     }
 
     private fun renderSignIn() {
@@ -239,7 +271,10 @@ class MainActivity : AppCompatActivity() {
         card.addView(fieldLabel("Kata sandi"))
         card.addView(password)
 
-        val status = authStatus()
+        val status = authStatus().apply {
+            text = roleCheckError.orEmpty()
+            roleCheckError = null
+        }
         card.addView(status)
         val loginButton = button("Masuk") {}
         loginButton.setOnClickListener {
@@ -268,11 +303,15 @@ class MainActivity : AppCompatActivity() {
                         runOnUiThread { renderTemporaryPasswordChange() }
                     } else {
                         val email = response.body.optString("email")
+                        val role = response.body.optString("role")
                         if (email.isBlank()) {
                             throw IllegalStateException("Server tidak mengirim identitas akun untuk sesi aplikasi.")
                         }
+                        if (role.isBlank()) {
+                            throw IllegalStateException("Server tidak mengirim role akun untuk sesi aplikasi.")
+                        }
                         runOnUiThread { status.text = "Login berhasil. Menyiapkan aplikasi…" }
-                        signInFirebase(email, passwordValue, status) {
+                        signInFirebase(email, passwordValue, role, status) {
                             loginButton.isEnabled = true
                         }
                     }
@@ -354,11 +393,15 @@ class MainActivity : AppCompatActivity() {
                     )
                     ApiClient.requireSuccess(response)
                     val email = response.body.optString("email")
+                    val role = response.body.optString("role")
                     if (email.isBlank()) {
                         throw IllegalStateException("Server tidak mengirim identitas akun untuk sesi aplikasi.")
                     }
+                    if (role.isBlank()) {
+                        throw IllegalStateException("Server tidak mengirim role akun untuk sesi aplikasi.")
+                    }
                     pendingPasswordChange = null
-                    signInFirebase(email, value, status)
+                    signInFirebase(email, value, role, status)
                 } catch (error: Exception) {
                     runOnUiThread {
                         status.isEnabled = true
@@ -377,6 +420,7 @@ class MainActivity : AppCompatActivity() {
     private fun signInFirebase(
         email: String,
         password: String,
+        role: String,
         status: TextView,
         onFailure: (() -> Unit)? = null,
     ) {
@@ -385,7 +429,7 @@ class MainActivity : AppCompatActivity() {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     pendingPasswordChange = null
-                    render()
+                    openDashboardForRole(role, forceWebSession = true)
                 } else {
                     onFailure?.invoke()
                     status.isEnabled = true
@@ -393,6 +437,26 @@ class MainActivity : AppCompatActivity() {
                         ?: "Sesi aplikasi belum dapat dimulai. Silakan coba masuk kembali."
                 }
             }
+    }
+
+    private fun openDashboardForRole(role: String, forceWebSession: Boolean = false) {
+        when (role) {
+            "user" -> renderHikerDashboard()
+            "admin", "superadmin", "basecamp_admin", "registration_operator",
+            "treasurer", "field_officer", "information_manager" -> {
+                startActivity(
+                    Intent(this, AdminDashboardActivity::class.java)
+                        .putExtra(AdminDashboardActivity.EXTRA_ROLE, role)
+                        .putExtra(AdminDashboardActivity.EXTRA_FORCE_SESSION, forceWebSession),
+                )
+                finish()
+            }
+            else -> {
+                roleCheckError = "Akun ini tidak memiliki role aktif untuk aplikasi."
+                auth.signOut()
+                renderSignIn()
+            }
+        }
     }
 
     private fun setAuthBusy(status: TextView, message: String) {

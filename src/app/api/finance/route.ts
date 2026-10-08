@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
-import { getSessionUser } from "@/lib/auth/session";
+import { getRequestUser } from "@/lib/auth/session";
 import { getAssignedBasecampId, getUserRole, hasPermission } from "@/lib/auth/roles";
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 
@@ -13,8 +13,8 @@ type FinanceBody = {
   note?: unknown;
 };
 
-export async function GET() {
-  const user = await getSessionUser();
+export async function GET(request: Request) {
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
   if (!hasPermission(user, "finance:read")) {
     return NextResponse.json({ error: "Akses ke data keuangan ditolak." }, { status: 403 });
@@ -46,7 +46,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const user = await getSessionUser();
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
   if (!hasPermission(user, "finance:write")) {
     return NextResponse.json({ error: "Akses pencatatan keuangan ditolak." }, { status: 403 });

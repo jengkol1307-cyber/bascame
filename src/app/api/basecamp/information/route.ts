@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
-import { getSessionUser } from "@/lib/auth/session";
+import { getRequestUser } from "@/lib/auth/session";
 import { getAssignedBasecampId, hasPermission } from "@/lib/auth/roles";
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 
@@ -19,8 +19,8 @@ type InformationBody = {
   visibility?: unknown;
 };
 
-async function getManager() {
-  const user = await getSessionUser();
+async function getManager(request: Request) {
+  const user = await getRequestUser(request);
   if (!user) return { response: NextResponse.json({ error: "Silakan masuk." }, { status: 401 }) };
   if (!hasPermission(user, "information:write")) {
     return { response: NextResponse.json({ error: "Akses pengelolaan informasi ditolak." }, { status: 403 }) };
@@ -84,8 +84,8 @@ function parseData(body: InformationBody, type: InformationType) {
   };
 }
 
-export async function GET() {
-  const access = await getManager();
+export async function GET(request: Request) {
+  const access = await getManager(request);
   if (access.response) return access.response;
   try {
     const firestore = getFirebaseAdminFirestore();
@@ -113,7 +113,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const access = await getManager();
+  const access = await getManager(request);
   if (access.response) return access.response;
   let body: InformationBody;
   try {
@@ -162,7 +162,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const access = await getManager();
+  const access = await getManager(request);
   if (access.response) return access.response;
   let body: InformationBody;
   try {

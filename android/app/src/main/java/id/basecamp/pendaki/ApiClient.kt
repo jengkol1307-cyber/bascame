@@ -7,6 +7,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 data class ApiResponse(val status: Int, val body: JSONObject)
+class WebSessionAuthenticationException(message: String) : IllegalStateException(message)
+
 data class RawApiResponse(
     val status: Int,
     val body: ByteArray,
@@ -14,6 +16,50 @@ data class RawApiResponse(
 )
 
 object ApiClient {
+    fun createWebSessionCookie(): String {
+        val user = FirebaseAuth.getInstance().currentUser
+            ?: throw IllegalStateException("Silakan masuk kembali ke aplikasi.")
+        val idToken = Tasks.await(user.getIdToken(false)).token
+            ?: throw IllegalStateException("Token login belum tersedia.")
+        val connection = URL("${BuildConfig.API_BASE_URL}/api/auth/session")
+            .openConnection() as HttpURLConnection
+        connection.requestMethod = "POST"
+        connection.connectTimeout = 20_000
+        connection.readTimeout = 60_000
+        connection.setRequestProperty("Accept", "application/json")
+        connection.setRequestProperty("Cache-Control", "no-store")
+        connection.setRequestProperty("Content-Type", "application/json")
+        connection.doOutput = true
+        connection.outputStream.bufferedWriter(Charsets.UTF_8).use { writer ->
+            writer.write(JSONObject().put("idToken", idToken).toString())
+        }
+        return try {
+            val status = connection.responseCode
+            val stream = if (status in 200..299) connection.inputStream else connection.errorStream
+            val responseText = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
+            if (status !in 200..299) {
+                val message = if (responseText.isBlank()) {
+                    "Sesi web belum dapat dibuat (${status})."
+                } else {
+                    JSONObject(responseText).optString("error")
+                        .ifBlank { "Sesi web belum dapat dibuat (${status})." }
+                }
+                if (status == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                    throw WebSessionAuthenticationException(message)
+                }
+                throw IllegalStateException(message)
+            }
+            val cookie = connection.getHeaderField("Set-Cookie")
+                ?: throw IllegalStateException("Server tidak mengirim cookie sesi web.")
+            if (!cookie.startsWith("__session=")) {
+                throw IllegalStateException("Cookie sesi web dari server tidak valid.")
+            }
+            cookie
+        } finally {
+            connection.disconnect()
+        }
+    }
+
     fun request(path: String, method: String = "GET", body: JSONObject? = null): ApiResponse {
         val user = FirebaseAuth.getInstance().currentUser
             ?: throw IllegalStateException("Silakan masuk kembali ke aplikasi.")

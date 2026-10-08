@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
-import { getSessionUser } from "@/lib/auth/session";
+import { getRequestUser } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/roles";
 import { getFirebaseAdminAuth, getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 
@@ -12,8 +12,8 @@ type BasecampBody = {
   temporaryPassword?: unknown;
 };
 
-async function requireSuperadmin() {
-  const user = await getSessionUser();
+async function requireSuperadmin(request: Request) {
+  const user = await getRequestUser(request);
   if (!user) return { response: NextResponse.json({ error: "Silakan masuk." }, { status: 401 }) };
   if (user.role !== "superadmin" || !hasPermission(user, "basecamp:provision")) {
     return { response: NextResponse.json({ error: "Akses ditolak." }, { status: 403 }) };
@@ -21,8 +21,8 @@ async function requireSuperadmin() {
   return { user };
 }
 
-export async function GET() {
-  const access = await requireSuperadmin();
+export async function GET(request: Request) {
+  const access = await requireSuperadmin(request);
   if (access.response) return access.response;
 
   try {
@@ -40,7 +40,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const access = await requireSuperadmin();
+  const access = await requireSuperadmin(request);
   if (access.response) return access.response;
 
   let body: BasecampBody;
