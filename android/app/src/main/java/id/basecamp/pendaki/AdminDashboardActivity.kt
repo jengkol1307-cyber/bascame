@@ -2,6 +2,7 @@ package id.basecamp.pendaki
 
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.Gravity
@@ -35,6 +36,7 @@ class AdminDashboardActivity : AppCompatActivity() {
     }
     private lateinit var webView: WebView
     private lateinit var overlay: LinearLayout
+    private lateinit var menuButton: TextView
     private var redirectingToLogin = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,6 +102,10 @@ class AdminDashboardActivity : AppCompatActivity() {
                     val destination = request.url
                     if (!request.isForMainFrame) return false
                     val appHost = Uri.parse(apiBaseUrl).host
+                    if (destination.host == appHost && destination.path == "/api/auth/logout") {
+                        returnToNativeLogin()
+                        return true
+                    }
                     if (destination.host != appHost) {
                         startActivity(Intent(Intent.ACTION_VIEW, destination))
                         return true
@@ -139,6 +145,21 @@ class AdminDashboardActivity : AppCompatActivity() {
             setPadding(dp(28), dp(28), dp(28), dp(28))
             setBackgroundColor(Color.rgb(247, 249, 246))
         }
+        menuButton = TextView(this).apply {
+            text = "\u2630"
+            textSize = 22f
+            gravity = Gravity.CENTER
+            setTextColor(Color.rgb(40, 90, 70))
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = dp(11).toFloat()
+                setColor(Color.WHITE)
+                setStroke(dp(1), Color.rgb(220, 230, 221))
+            }
+            elevation = dp(6).toFloat()
+            contentDescription = "Buka atau tutup navigasi"
+            setOnClickListener { toggleWebDrawer() }
+        }
         val root = FrameLayout(this).apply {
             addView(webView, FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -149,6 +170,11 @@ class AdminDashboardActivity : AppCompatActivity() {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT,
             )
+            addView(menuButton, FrameLayout.LayoutParams(dp(46), dp(46)).apply {
+                gravity = Gravity.TOP or Gravity.START
+                leftMargin = dp(12)
+                topMargin = dp(12)
+            })
         }
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -158,6 +184,36 @@ class AdminDashboardActivity : AppCompatActivity() {
         setContentView(root)
         ViewCompat.requestApplyInsets(root)
         showMessage("Menyiapkan dashboard…")
+    }
+
+    private fun toggleWebDrawer() {
+        if (!::webView.isInitialized) return
+        webView.evaluateJavascript(
+            """(() => {
+                const input = document.querySelector('.sidebar-drawer-state');
+                const drawer = document.querySelector('#dashboard-sidebar-drawer');
+                const backdrop = document.querySelector('.sidebar-drawer-backdrop');
+                if (!drawer) return 'missing';
+                const updateDrawer = (open) => {
+                    drawer.style.transform = open ? 'translateX(0)' : 'translateX(-105%)';
+                    drawer.style.visibility = open ? 'visible' : 'hidden';
+                    drawer.style.transitionDelay = '0s';
+                    if (backdrop) backdrop.style.display = open ? 'block' : 'none';
+                };
+                if (input && !input.dataset.nativeDrawerSync) {
+                    input.addEventListener('change', () => updateDrawer(input.checked));
+                    input.dataset.nativeDrawerSync = 'true';
+                }
+                const open = input ? !input.checked : !drawer.classList.contains('is-open');
+                if (input) {
+                    input.checked = open;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                } else {
+                    updateDrawer(open);
+                }
+                return open ? 'open' : 'closed';
+            })()""",
+        ) { }
     }
 
     private fun createWebSession(uid: String) {

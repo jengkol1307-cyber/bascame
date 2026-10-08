@@ -961,6 +961,11 @@ class MainActivity : AppCompatActivity() {
             selectedTripId = trip.id
             beginTracking(trip, status)
         })
+        content.addView(button("Kirim titik lokasi sekarang") {
+            val trip = activeTrips.getOrNull(tripPicker.selectedItemPosition) ?: return@button
+            selectedTripId = trip.id
+            sendCurrentLocation(trip, status, queueStatus)
+        })
         content.addView(button("Hentikan pelacakan") {
             stopTracking()
             status.text = "Pelacakan dihentikan. Sinyal yang sudah antre tetap tersimpan."
@@ -2176,6 +2181,59 @@ class MainActivity : AppCompatActivity() {
 
     private fun stopTracking() {
         startService(Intent(this, LocationTrackingService::class.java).setAction(LocationTrackingService.ACTION_STOP))
+    }
+
+    private fun sendCurrentLocation(
+        trip: HikerTrip,
+        status: TextView,
+        queueStatus: TextView,
+    ) {
+        if (!hasForegroundLocationPermission()) {
+            status.text = "Izin lokasi diperlukan untuk mengirim titik GPS."
+            showMessage("Izinkan akses lokasi saat aplikasi digunakan, lalu tekan Kirim titik lokasi sekarang kembali.")
+            return
+        }
+
+        status.text = "Mengambil titik GPS saat ini…"
+        executor.execute {
+            try {
+                val cancellation = CancellationTokenSource()
+                val location = Tasks.await(
+                    LocationServices.getFusedLocationProviderClient(this)
+                        .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellation.token),
+                    15,
+                    TimeUnit.SECONDS,
+                ) ?: throw IllegalStateException(
+                    "Lokasi GPS belum tersedia. Pastikan layanan lokasi aktif dan coba lagi.",
+                )
+                if (System.currentTimeMillis() - location.time > 2 * 60 * 1000) {
+                    throw IllegalStateException(
+                        "Lokasi yang didapat sudah terlalu lama. Coba lagi di area dengan sinyal GPS yang lebih baik.",
+                    )
+                }
+                TrackingDatabase.get(this).savePoint(
+                    QueuedPoint(
+                        registrationId = trip.id,
+                        latitude = location.latitude,
+                        longitude = location.longitude,
+                        accuracy = location.accuracy,
+                        capturedAt = location.time,
+                    ),
+                )
+                LocationUploadWorker.enqueueNow(this)
+                runOnUiThread {
+                    status.text =
+                        "Titik lokasi terbaru tersimpan dan sedang diupayakan untuk dikirim. Penerimaan server belum terkonfirmasi."
+                    updateQueueStatus(queueStatus)
+                }
+            } catch (error: Exception) {
+                Log.e(TAG, "Titik lokasi manual belum dapat diambil atau disimpan.", error)
+                runOnUiThread {
+                    status.text = error.localizedMessage
+                        ?: "Titik lokasi belum dapat dikirim. Periksa izin dan layanan lokasi, lalu coba lagi."
+                }
+            }
+        }
     }
 
     private fun sendSos(

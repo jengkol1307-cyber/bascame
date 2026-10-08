@@ -25,7 +25,7 @@ Do not put service-account credentials or private server keys in the Android app
 
 Location tracking is only available for a trip whose server status is `checked_in`. Android requires foreground location permission and, for background updates, the user must grant background location access. On Android 11 and newer the app opens system settings so the user can explicitly choose “Allow all the time.” A persistent foreground-service notification provides a stop action.
 
-The app requests location updates at an approximate 30-minute interval. Android may defer or batch updates due to battery, device, and operating-system policies; this is not a guaranteed schedule. Captured points and SOS requests are persisted locally before upload and remain in the outbox when upload fails. SOS is prioritized, and the UI does not report server confirmation until the request leaves the local queue.
+The app requests automatic location updates at an approximate 30-minute interval. Android may defer or batch updates due to battery, device, and operating-system policies; this is not a guaranteed schedule. On the Safety tab, the hiker can also tap “Kirim titik lokasi sekarang” to capture and queue a fresh GPS point without waiting for the automatic interval. Captured points and SOS requests are persisted locally before upload and remain in the outbox when upload fails. SOS is prioritized, and the UI does not report server confirmation until the request leaves the local queue.
 
 ## Offline maps
 
