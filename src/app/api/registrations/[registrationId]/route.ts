@@ -136,6 +136,16 @@ async function updateOwnRegistration(
       touchCapacityLocks(transaction, capacityLocks);
       transaction.update(registrationRef, {
         mountainId: mountain.id,
+        ...(typeof mountain.get("latitude") === "number" &&
+          typeof mountain.get("longitude") === "number"
+          ? {
+              mountainLatitude: mountain.get("latitude"),
+              mountainLongitude: mountain.get("longitude"),
+            }
+          : {
+              mountainLatitude: FieldValue.delete(),
+              mountainLongitude: FieldValue.delete(),
+            }),
         ...(typeof mountain.get("basecampId") === "string"
           ? { basecampId: mountain.get("basecampId") }
           : { basecampId: FieldValue.delete() }),

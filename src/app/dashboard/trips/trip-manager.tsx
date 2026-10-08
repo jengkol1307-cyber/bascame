@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { HikerSosPanel } from "../sos-workspace";
 
 type Mountain = {
   id: string;
@@ -67,6 +68,10 @@ function canEditRegistration(status: string) {
   return ["pending", "revision_requested", "needs_revision"].includes(status);
 }
 
+function isHistoryTrip(status: string) {
+  return ["checked_out", "rejected", "cancelled"].includes(status);
+}
+
 function isMountainOpen(status: string) {
   return ["buka", "dibuka", "open"].includes(status.trim().toLocaleLowerCase("id-ID"));
 }
@@ -81,6 +86,8 @@ export function TripManager({ initialMountainId = "" }: Props) {
   const [editing, setEditing] = useState<EditingRegistration | null>(null);
   const [mutatingId, setMutatingId] = useState("");
   const openMountains = mountains.filter((mountain) => isMountainOpen(mountain.status));
+  const currentTrips = registrations.filter((trip) => !isHistoryTrip(trip.status));
+  const historyTrips = registrations.filter((trip) => isHistoryTrip(trip.status));
 
   async function loadData() {
     try {
@@ -261,6 +268,8 @@ export function TripManager({ initialMountainId = "" }: Props) {
         )}
       </section>
 
+      {!loading && <HikerSosPanel trips={registrations} />}
+
       <section className="dashboard-panel">
         <div className="hiker-panel-heading">
           <div><span className="eyebrow">RIWAYAT & STATUS</span><h2>Pendakian saya</h2></div>
@@ -272,8 +281,11 @@ export function TripManager({ initialMountainId = "" }: Props) {
             <span>Gunakan formulir di atas untuk mengirim pengajuan pertama.</span>
           </div>
         ) : (
-          <div className="hiker-list">
-            {registrations.map((trip) => (
+          <div className="hiker-list hiker-trip-groups">
+            {currentTrips.length > 0 && (
+              <section className="hiker-trip-group" aria-labelledby="current-trips-title">
+                <h3 id="current-trips-title">Perjalanan aktif</h3>
+                {currentTrips.map((trip) => (
               <article className="hiker-trip-card" key={trip.id}>
                 <div className="hiker-list-row">
                   <span className="hiker-list-icon" aria-hidden="true">↟</span>
@@ -351,7 +363,26 @@ export function TripManager({ initialMountainId = "" }: Props) {
                   </form>
                 )}
               </article>
-            ))}
+                ))}
+              </section>
+            )}
+            {historyTrips.length > 0 && (
+              <section className="hiker-trip-group" aria-labelledby="history-trips-title">
+                <h3 id="history-trips-title">Histori pendakian</h3>
+                {historyTrips.map((trip) => (
+                  <article className="hiker-trip-card" key={trip.id}>
+                    <div className="hiker-list-row">
+                      <span className="hiker-list-icon" aria-hidden="true">✓</span>
+                      <div className="hiker-list-content">
+                        <strong>{trip.mountainName}</strong>
+                        <span>{trip.startDate} – {trip.endDate} · {trip.groupSize} anggota</span>
+                      </div>
+                      <span className={`hiker-badge hiker-badge-${trip.status}`}>{statusLabel(trip.status)}</span>
+                    </div>
+                  </article>
+                ))}
+              </section>
+            )}
           </div>
         )}
         <Link className="back-home" href="/dashboard/notifications">Lihat informasi dan pemberitahuan →</Link>

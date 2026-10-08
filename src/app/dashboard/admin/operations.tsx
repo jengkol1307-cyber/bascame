@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import type { UserRole } from "@/lib/auth/roles";
 import { QrTicketScanner } from "./qr-ticket-scanner";
 
@@ -34,6 +35,8 @@ type InfoRecord = {
   content: string;
   location?: string;
   elevation?: string;
+  latitude?: number | null;
+  longitude?: number | null;
   status?: string;
   quota?: number | null;
   visibility: "public" | "draft";
@@ -69,6 +72,7 @@ function canUse(role: UserRole, action: "registration" | "finance" | "informatio
 }
 
 function RegistrationWorkspace({ role }: { role: UserRole }) {
+  const router = useRouter();
   const [registrations, setRegistrations] = useState<RegistrationRecord[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -111,6 +115,7 @@ function RegistrationWorkspace({ role }: { role: UserRole }) {
     };
     if (!response.ok) throw new Error(result.error ?? "Tiket belum dapat diproses.");
     reload();
+    router.refresh();
     const actionLabel = result.action === "check_in" ? "Check-in berhasil" : "Check-out berhasil";
     return `${actionLabel}: ${result.mountainName ?? "Gunung"} · ${result.startDate ?? ""} – ${result.endDate ?? ""} · ${result.groupSize ?? "—"} orang.`;
   }
@@ -370,6 +375,8 @@ function InformationWorkspace() {
   const [content, setContent] = useState("");
   const [location, setLocation] = useState("");
   const [elevation, setElevation] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
   const [status, setStatus] = useState("Buka");
   const [quota, setQuota] = useState("");
   const [visibility, setVisibility] = useState<"public" | "draft">("public");
@@ -423,6 +430,8 @@ function InformationWorkspace() {
       setContent("");
       setLocation("");
       setElevation("");
+      setLatitude("");
+      setLongitude("");
       setStatus("Buka");
       setQuota("");
       setVisibility("public");
@@ -433,6 +442,8 @@ function InformationWorkspace() {
     setContent(record.content);
     setLocation(record.location ?? "");
     setElevation(record.elevation ?? "");
+    setLatitude(record.latitude == null ? "" : String(record.latitude));
+    setLongitude(record.longitude == null ? "" : String(record.longitude));
     setStatus(record.status ?? "Buka");
     setQuota(record.quota == null ? "" : String(record.quota));
     setVisibility(record.visibility);
@@ -450,6 +461,8 @@ function InformationWorkspace() {
       content,
       location,
       elevation,
+      latitude: latitude.trim() ? Number(latitude) : null,
+      longitude: longitude.trim() ? Number(longitude) : null,
       status,
       ...(quota ? { quota: Number(quota) } : {}),
       visibility,
@@ -469,6 +482,8 @@ function InformationWorkspace() {
         content,
         location,
         elevation,
+        latitude: latitude.trim() ? Number(latitude) : null,
+        longitude: longitude.trim() ? Number(longitude) : null,
         status,
         quota: quota ? Number(quota) : null,
         visibility,
@@ -484,6 +499,8 @@ function InformationWorkspace() {
       setContent("");
       setLocation("");
       setElevation("");
+      setLatitude("");
+      setLongitude("");
       setQuota("");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Informasi belum dapat disimpan.");
@@ -518,6 +535,8 @@ function InformationWorkspace() {
           <>
             <label className="form-field">Lokasi<input value={location} onChange={(event) => setLocation(event.target.value)} maxLength={120} /></label>
             <label className="form-field">Ketinggian<input value={elevation} onChange={(event) => setElevation(event.target.value)} maxLength={40} /></label>
+            <label className="form-field">Latitude pusat peta<input type="number" min="-90" max="90" step="any" value={latitude} onChange={(event) => setLatitude(event.target.value)} /><span>Opsional; koordinat gunung/basecamp untuk unduh peta offline.</span></label>
+            <label className="form-field">Longitude pusat peta<input type="number" min="-180" max="180" step="any" value={longitude} onChange={(event) => setLongitude(event.target.value)} /></label>
             <label className="form-field">Status jalur<input value={status} onChange={(event) => setStatus(event.target.value)} minLength={2} maxLength={80} required /><span>Hanya status “Buka” atau “Dibuka” yang menerima pengajuan pendakian.</span></label>
             <label className="form-field">Kuota (opsional)<input type="number" min="0" step="1" value={quota} onChange={(event) => setQuota(event.target.value)} /></label>
           </>

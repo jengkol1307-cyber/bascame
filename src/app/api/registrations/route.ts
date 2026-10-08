@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
-import { getSessionUser } from "@/lib/auth/session";
+import { getRequestUser, getSessionUser } from "@/lib/auth/session";
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 import { getAssignedBasecampId, getUserRole, hasPermission } from "@/lib/auth/roles";
 import {
@@ -12,8 +12,8 @@ import {
   touchCapacityLocks,
 } from "@/lib/registrations/capacity";
 
-export async function GET() {
-  const user = await getSessionUser();
+export async function GET(request: Request) {
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: "Silakan masuk." }, { status: 401 });
 
   try {
@@ -150,6 +150,13 @@ export async function POST(request: Request) {
         ownerEmail: user.email,
         ownerName: user.name ?? user.username ?? user.email,
         mountainId: mountain.id,
+        ...(typeof mountain.get("latitude") === "number" &&
+          typeof mountain.get("longitude") === "number"
+          ? {
+              mountainLatitude: mountain.get("latitude"),
+              mountainLongitude: mountain.get("longitude"),
+            }
+          : {}),
         ...(typeof mountain.get("basecampId") === "string"
           ? { basecampId: mountain.get("basecampId") }
           : {}),

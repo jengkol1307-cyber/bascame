@@ -70,7 +70,7 @@ export function AdminDashboardView({
             aria-current={activePanelId === "overview" ? "page" : undefined}
             onClick={() => showPanel("overview")}
           >
-            <span className="admin-menu-icon" aria-hidden="true">01</span>
+            <span className="admin-menu-icon" aria-hidden="true">⌂</span>
             <span className="admin-menu-copy">
               <strong>Ringkasan</strong>
               <small>KPI dan ikhtisar operasional</small>
@@ -179,31 +179,6 @@ export function AdminDashboardView({
                   Ringkasan pendaftaran tidak termasuk dalam hak akses role ini.
                 </div>
               )}
-            </section>
-
-            <section className="admin-quick-section" aria-labelledby="admin-quick-title">
-              <div className="admin-section-heading">
-                <div>
-                  <span className="admin-kicker">NAVIGASI</span>
-                  <h2 id="admin-quick-title">Pilih ruang kerja</h2>
-                </div>
-                <span className="admin-section-count">{panels.length} menu</span>
-              </div>
-              <div className="admin-quick-grid">
-                {panels.map((panel) => (
-                  <button
-                    className="admin-quick-card"
-                    key={panel.id}
-                    type="button"
-                    onClick={() => showPanel(panel.id)}
-                  >
-                    <span className="admin-quick-icon" aria-hidden="true">{panel.icon}</span>
-                    <strong>{panel.label}</strong>
-                    <small>{panel.detail}</small>
-                    <span className="admin-quick-arrow" aria-hidden="true">↗</span>
-                  </button>
-                ))}
-              </div>
             </section>
 
             <footer className="admin-footer">

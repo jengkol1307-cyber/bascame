@@ -28,3 +28,27 @@ export async function getSessionUser(): Promise<DecodedIdToken | null> {
     throw error;
   }
 }
+
+export async function getRequestUser(request: Request): Promise<DecodedIdToken | null> {
+  const authorization = request.headers.get("authorization");
+  if (authorization === null) return getSessionUser();
+
+  const match = /^Bearer ([^\s]+)$/i.exec(authorization);
+  if (!match) return null;
+
+  try {
+    return await getFirebaseAdminAuth().verifyIdToken(match[1], true);
+  } catch (error) {
+    const code = (error as { code?: string }).code;
+    if (
+      code === "auth/argument-error" ||
+      code === "auth/id-token-expired" ||
+      code === "auth/invalid-id-token" ||
+      code === "auth/id-token-revoked" ||
+      code === "auth/user-disabled"
+    ) {
+      return null;
+    }
+    throw error;
+  }
+}

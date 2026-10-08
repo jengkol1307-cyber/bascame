@@ -1,0 +1,31 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "trackingPoints",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "basecampId", "order": "ASCENDING" },
+        { "fieldPath": "capturedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "trackingPoints",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "basecampId", "order": "ASCENDING" },
+        { "fieldPath": "registrationId", "order": "ASCENDING" },
+        { "fieldPath": "capturedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "trackingPoints",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ownerUid", "order": "ASCENDING" },
+        { "fieldPath": "registrationId", "order": "ASCENDING" },
+        { "fieldPath": "capturedAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

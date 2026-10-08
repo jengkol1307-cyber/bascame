@@ -11,6 +11,8 @@ type InformationBody = {
   title?: unknown;
   location?: unknown;
   elevation?: unknown;
+  latitude?: unknown;
+  longitude?: unknown;
   status?: unknown;
   quota?: unknown;
   content?: unknown;
@@ -52,17 +54,34 @@ function parseData(body: InformationBody, type: InformationType) {
 
   const location = typeof body.location === "string" ? body.location.trim() : "";
   const elevation = typeof body.elevation === "string" ? body.elevation.trim() : "";
+  const latitude = body.latitude === "" || body.latitude == null ? null : body.latitude;
+  const longitude = body.longitude === "" || body.longitude == null ? null : body.longitude;
   const status = typeof body.status === "string" ? body.status.trim() : "";
   const quota = body.quota;
   if (
     location.length > 120 ||
     elevation.length > 40 ||
+    ((latitude === null) !== (longitude === null)) ||
+    (latitude !== null &&
+      (typeof latitude !== "number" || !Number.isFinite(latitude) || latitude < -90 || latitude > 90)) ||
+    (longitude !== null &&
+      (typeof longitude !== "number" || !Number.isFinite(longitude) || longitude < -180 || longitude > 180)) ||
     status.length < 2 ||
     status.length > 80 ||
     (quota !== undefined && (!Number.isSafeInteger(quota) || (quota as number) < 0)) ||
     (content.length === 0)
   ) return null;
-  return { name: title, location, elevation, status, quota: quota ?? null, description: content, visibility };
+  return {
+    name: title,
+    location,
+    elevation,
+    status,
+    quota: quota ?? null,
+    latitude,
+    longitude,
+    description: content,
+    visibility,
+  };
 }
 
 export async function GET() {

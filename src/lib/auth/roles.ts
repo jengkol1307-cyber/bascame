@@ -35,6 +35,7 @@ export type Permission =
   | "registrations:decide"
   | "manifest:read"
   | "field:checkin"
+  | "sos:manage"
   | "finance:read"
   | "finance:write"
   | "information:write";
@@ -47,6 +48,7 @@ const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     "registrations:decide",
     "manifest:read",
     "field:checkin",
+    "sos:manage",
     "finance:read",
     "finance:write",
     "information:write",
@@ -57,6 +59,7 @@ const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     "registrations:decide",
     "manifest:read",
     "field:checkin",
+    "sos:manage",
     "finance:read",
     "finance:write",
     "information:write",
@@ -67,13 +70,14 @@ const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     "registrations:decide",
     "manifest:read",
     "field:checkin",
+    "sos:manage",
     "finance:read",
     "finance:write",
     "information:write",
   ],
   registration_operator: ["registrations:read", "registrations:decide"],
   treasurer: ["finance:read", "finance:write"],
-  field_officer: ["manifest:read", "field:checkin"],
+  field_officer: ["manifest:read", "field:checkin", "sos:manage"],
   information_manager: ["information:write"],
   disabled: [],
 };

@@ -37,6 +37,13 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Android local configuration
+/android/local.properties
+/android/app/google-services.json
+/android/.gradle/
+/android/build/
+/android/app/build/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

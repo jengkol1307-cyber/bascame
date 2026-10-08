@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "maplibre-gl/dist/maplibre-gl.css";
 
 :root {
   --ink: #18332b;
@@ -200,6 +201,73 @@ button, input { font: inherit; }
 .hiker-recent-trips { margin-top: 17px; }
 .hiker-recent-trips .hiker-panel-heading { margin-bottom: 8px; }
 .hiker-list { display: grid; }
+.hiker-trip-groups { gap: 22px; }
+.hiker-trip-group { display: grid; gap: 8px; }
+.hiker-trip-group > h3 { margin: 0; padding-bottom: 8px; border-bottom: 1px solid #edf0ed; color: #485c50; font-size: 12px; }
+.hiker-trip-card { min-width: 0; border-bottom: 1px solid #edf0ed; }
+.hiker-trip-card:last-child { border-bottom: 0; }
+.hiker-trip-card .hiker-list-row { border-bottom: 0; }
+.hiker-sos-panel { border-color: #efd4ce; background: #fffdfb; }
+.hiker-sos-panel > .hiker-panel-heading { margin-bottom: 10px; }
+.hiker-sos-panel h2 { color: #7c3329; }
+.sos-live-indicator { display: inline-flex; align-items: center; gap: 7px; color: #6d796f; font-size: 10px; font-weight: 700; }
+.sos-live-indicator i { width: 7px; height: 7px; border-radius: 50%; background: #ba594b; box-shadow: 0 0 0 3px #f8e9e5; }
+.sos-safety-note { margin: 0 0 14px; padding: 11px 13px; border: 1px solid #f0dfc3; border-radius: 8px; background: #fff8e9; color: #795d31 !important; font-size: 11px !important; line-height: 1.65 !important; }
+.sos-hiker-trips, .sos-incident-list { display: grid; gap: 10px; }
+.sos-hiker-trip, .sos-incident-card { min-width: 0; padding: 15px; border: 1px solid #ebeeea; border-radius: 9px; background: white; }
+.sos-hiker-trip-heading, .sos-incident-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.sos-hiker-trip-heading > div, .sos-incident-heading > div { display: grid; gap: 5px; min-width: 0; }
+.sos-hiker-trip-heading strong, .sos-incident-heading strong { color: #35483d; font-size: 12px; }
+.sos-hiker-trip-heading > div > span, .sos-incident-heading > div > span { color: #849087; font-size: 10px; }
+.sos-status { width: fit-content; flex: 0 0 auto; padding: 5px 8px; border-radius: 20px; background: #f2f3ef; color: #65736a; font-size: 9px; font-weight: 750; }
+.sos-status-open { background: #fff0eb; color: #a34031; }
+.sos-status-acknowledged { background: #fff5df; color: #8b6829; }
+.sos-status-dispatched { background: #e8f1ff; color: #365e91; }
+.sos-status-resolved { background: #e8f3e9; color: #3f7048; }
+.sos-status-false_alarm { background: #f0efee; color: #73706d; }
+.button-sos { border: 1px solid #a93c30; background: linear-gradient(135deg, #c75243, #a9362b); box-shadow: 0 5px 14px rgb(169 54 43 / 16%); color: white; }
+.button-sos:hover { background: linear-gradient(135deg, #b74639, #902a22); }
+.sos-send-button { min-height: 39px; margin-top: 11px; padding: 0 14px; font-size: 11px; }
+.sos-hiker-form { display: grid; gap: 10px; margin-top: 12px; }
+.sos-hiker-form .form-field, .sos-manager-actions .form-field { display: grid; gap: 6px; margin: 0; color: #59675f; font-size: 10px; font-weight: 650; }
+.sos-hiker-form input, .sos-hiker-form select, .sos-hiker-form textarea, .sos-manager-actions input { width: 100%; min-height: 39px; padding: 9px 11px; border: 1px solid #dce1d9; border-radius: 6px; background: white; color: #34483c; font: inherit; font-size: 11px; }
+.sos-hiker-form textarea { resize: vertical; }
+.sos-hiker-form > small { color: #758179; font-size: 10px; }
+.sos-hiker-form .hiker-trip-actions { margin-top: 0; }
+.sos-location-note { margin: 10px 0; color: #745c31 !important; font-size: 11px !important; line-height: 1.6 !important; }
+.sos-no-active { padding: 15px; border: 1px dashed #e2e8e2; border-radius: 8px; color: #77837b; font-size: 11px; }
+.sos-history-details { margin-top: 14px; color: #607066; font-size: 11px; }
+.sos-history-details summary { width: fit-content; cursor: pointer; font-weight: 700; }
+.sos-history-details > .sos-hiker-trips { margin-top: 10px; }
+.sos-hiker-active > p, .sos-incident-card > p { margin: 9px 0; color: #66736b; font-size: 11px; line-height: 1.6; }
+.sos-incident-card.is-active { border-color: #edc9c1; box-shadow: 0 5px 17px rgb(105 52 43 / 5%); }
+.sos-contact-row { display: flex; flex-wrap: wrap; gap: 8px 15px; margin: 9px 0; color: #64736a; font-size: 10px; }
+.sos-contact-row a, .sos-map-link { color: #285f48; font-weight: 700; }
+.sos-map-link { display: inline-block; margin: 4px 0 8px; font-size: 10px; overflow-wrap: anywhere; }
+.sos-location-missing { color: #9b563c !important; }
+.sos-history { display: grid; gap: 8px; margin: 11px 0; padding-left: 11px; border-left: 2px solid #e5ece5; }
+.sos-history > div { display: grid; gap: 3px; }
+.sos-history strong { color: #4d6154; font-size: 10px; }
+.sos-history span, .sos-history small { color: #88948c; font-size: 9px; }
+.sos-manager-actions { display: grid; gap: 10px; margin-top: 13px; padding-top: 12px; border-top: 1px solid #edf0ec; }
+.sos-manager-actions .operation-actions { justify-content: flex-start; }
+.sos-manager-actions .operation-actions .button { min-height: 35px; }
+.tracking-map-panel { display: grid; gap: 13px; }
+.tracking-map-toolbar { display: flex; align-items: end; flex-wrap: wrap; gap: 12px 18px; }
+.tracking-map-toolbar .form-field { display: grid; gap: 6px; min-width: min(100%, 270px); margin: 0 auto 0 0; color: #59675f; font-size: 10px; font-weight: 650; }
+.tracking-map-toolbar select { min-height: 38px; padding: 8px 10px; border: 1px solid #dce1d9; border-radius: 6px; background: white; color: #34483c; font: inherit; font-size: 11px; }
+.tracking-map-toolbar > span { display: inline-flex; align-items: center; gap: 6px; color: #64736a; font-size: 9px; }
+.tracking-map-toolbar i { width: 9px; height: 9px; display: inline-block; border-radius: 50%; }
+.tracking-legend-line { height: 3px; border-radius: 0 !important; background: #277651; }
+.tracking-legend-dot { background: #277651; }
+.tracking-legend-sos { background: #c54035; }
+.tracking-map-canvas { width: 100%; height: min(58vh, 560px); min-height: 340px; overflow: hidden; border: 1px solid #dfe6df; border-radius: 10px; background: #eef2ec; }
+.tracking-map-unconfigured, .tracking-map-empty, .tracking-map-loading { padding: 16px; border: 1px dashed #dfe6df; border-radius: 8px; color: #6c7b71; font-size: 11px; line-height: 1.7; }
+.tracking-map-unconfigured { display: grid; gap: 5px; background: #f8faf7; }
+.tracking-map-unconfigured strong { color: #34483c; }
+.tracking-map-unconfigured code { padding: 2px 4px; border-radius: 4px; background: #eef2ee; }
+.tracking-active-alert { padding: 11px 13px; border: 1px solid #edc9c1; border-radius: 8px; background: #fff4f1; color: #923d32; font-size: 11px; font-weight: 700; }
+.tracking-map-empty, .tracking-map-loading { margin: 0; }
 .hiker-list-row { min-height: 68px; display: flex; align-items: center; gap: 13px; border-bottom: 1px solid var(--line); }
 .hiker-list-row:last-child { border-bottom: 0; }
 .hiker-list-icon { width: 36px; height: 36px; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%; background: #edf1e9; color: var(--green); font-size: 18px; }
@@ -1032,7 +1100,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   min-height: 100vh;
   min-width: 0;
   padding: 28px 17px 18px;
-  gap: 27px;
+  gap: 18px;
   border-right-color: #e7ebe6;
   background: #fff;
 }
@@ -1061,7 +1129,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   grid-template-columns: 34px minmax(0, 1fr) 12px;
   align-items: center;
   width: 100%;
-  min-height: 55px;
+  min-height: 48px;
   padding: 7px 8px;
   gap: 9px;
   border: 1px solid transparent;
@@ -1081,8 +1149,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   background: #eef5ef;
 }
 .admin-menu-icon {
-  width: 32px !important;
-  height: 32px;
+  width: 29px !important;
+  height: 29px;
   display: grid;
   place-items: center;
   align-self: center;
@@ -1090,11 +1158,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   border-radius: 9px;
   background: #f7f9f6;
   color: #728379 !important;
-  font-size: 9px !important;
-  font-weight: 750;
+  font-size: 14px !important;
+  font-weight: 650;
   letter-spacing: .2px;
 }
-.admin-dashboard-shell .admin-menu-link > .admin-menu-icon { width: 32px; }
+.admin-dashboard-shell .admin-menu-link > .admin-menu-icon { width: 29px; }
 .admin-dashboard-shell .admin-menu-link > .admin-menu-copy {
   display: grid;
   align-content: center;
@@ -1152,41 +1220,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .admin-mark-ring-one { width: 145px; height: 145px; }
 .admin-mark-ring-two { width: 105px; height: 105px; }
 .admin-mark-letter { width: 64px; height: 64px; display: grid; place-items: center; border: 1px solid rgb(255 255 255 / 20%); border-radius: 20px; background: rgb(255 255 255 / 9%); font-family: Georgia, "Times New Roman", serif; font-size: 34px; }
-.admin-quick-section { display: grid; gap: 14px; }
 .admin-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; }
 .admin-section-heading h2 { margin: 5px 0 0; color: #283d32; font-size: 19px; letter-spacing: -.4px; }
 .admin-section-count { padding-bottom: 3px; color: #8a968e; font-size: 10px; }
-.admin-quick-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-.admin-quick-card {
-  min-height: 116px;
-  display: grid;
-  align-content: start;
-  justify-items: start;
-  position: relative;
-  padding: 14px;
-  border: 1px solid #e4eae4;
-  border-radius: 11px;
-  background: #fff;
-  color: #34483c;
-  font: inherit;
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
-  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
-}
-.admin-quick-card:hover { transform: translateY(-2px); border-color: #cbdacd; box-shadow: 0 9px 20px rgb(30 58 43 / 6%); }
-.admin-quick-card:focus-visible { outline: 3px solid #9cbea4; outline-offset: 2px; }
-.admin-quick-icon { width: 29px; height: 29px; display: grid; place-items: center; margin-bottom: 11px; border-radius: 9px; background: #edf4ee; color: #35664c; font-size: 8px; font-weight: 750; }
-.admin-quick-card strong { font-size: 11px; }
-.admin-quick-card small { margin-top: 4px; color: #8a968e; font-size: 9px; }
-.admin-quick-arrow { position: absolute; top: 15px; right: 15px; color: #9eaaa1; font-size: 12px; }
 .admin-operation-panel { scroll-margin-top: 22px; }
 .admin-section-view { display: grid; align-content: start; gap: 17px; }
 .admin-page-heading { display: grid; gap: 6px; margin: 7px 0 5px; }
 .admin-page-heading h1 { margin: 0; color: #263b31; font-family: Georgia, "Times New Roman", serif; font-size: clamp(29px, 3vw, 37px); font-weight: 500; letter-spacing: -.8px; }
 .admin-page-heading p { margin: 0; color: #78867e; font-size: 12px; }
 .admin-kpi-section { display: grid; gap: 13px; }
-.admin-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.admin-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 12px; }
 .admin-kpi-card {
   min-height: 131px;
   display: flex;
@@ -1223,10 +1266,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .admin-summary-error span { overflow-wrap: anywhere; }
 .admin-summary-empty { border-color: #e5eae5; background: #fff; color: #77857c; }
 .admin-footer { display: flex; justify-content: space-between; gap: 12px; padding: 3px 2px 0; color: #9aa49d; font-size: 9px; }
-
-@media (max-width: 1050px) {
-  .admin-quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
 
 @media (max-width: 760px) {
   .admin-dashboard-shell { grid-template-columns: minmax(0, 1fr); }
@@ -1291,8 +1330,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .admin-mark-ring-one { width: 105px; height: 105px; }
   .admin-mark-ring-two { width: 74px; height: 74px; }
   .admin-mark-letter { width: 47px; height: 47px; border-radius: 15px; font-size: 26px; }
-  .admin-quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
-  .admin-quick-card { min-height: 102px; padding: 12px; }
   .admin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
   .admin-kpi-card { min-height: 116px; padding: 13px; }
   .admin-kpi-card strong { font-size: 26px; }
@@ -1309,7 +1346,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .admin-welcome-mark { width: 69px; margin-right: -20px; }
   .admin-welcome h1 { font-size: 24px; }
   .admin-welcome p { max-width: 250px; }
-  .admin-quick-card { min-height: 96px; }
 }
 
 .dashboard-shell,
@@ -1320,7 +1356,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .dashboard-shell > .dashboard-sidebar-drawer {
   display: flex;
   flex-direction: column;
-  width: min(280px, calc(100vw - 56px));
+  width: min(270px, calc(100vw - 56px));
   height: 100vh;
   height: 100dvh;
   min-height: 0;
@@ -1342,9 +1378,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .dashboard-sidebar-drawer.admin-sidebar {
   display: flex;
   flex-direction: column;
-  width: min(290px, calc(100vw - 56px));
+  width: min(270px, calc(100vw - 56px));
   min-height: 0;
-  padding: 28px 17px 18px;
+  padding: 24px 15px 17px;
+  gap: 18px;
 }
 .sidebar-drawer-toggle {
   width: 42px;
@@ -1426,9 +1463,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .admin-dashboard-shell .admin-sidebar .admin-menu-link {
   display: grid;
   width: 100%;
-  min-height: 55px;
+  min-height: 48px;
   flex: initial;
-  padding: 7px 8px;
+  padding: 6px 7px;
   border: 1px solid transparent;
   background: transparent;
 }

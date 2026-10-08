@@ -12,6 +12,7 @@ type ChangePasswordBody = {
   currentPassword?: unknown;
   password?: unknown;
   newPassword?: unknown;
+  nativeClient?: unknown;
 };
 
 async function signIn(email: string, password: string, apiKey: string) {
@@ -140,6 +141,9 @@ export async function POST(request: Request) {
       ok: true,
       role,
       destination: getDashboardPath(refreshedUser),
+      ...(body.nativeClient === true && typeof refreshedUser.email === "string"
+        ? { email: refreshedUser.email }
+        : {}),
     });
     response.cookies.set(SESSION_COOKIE_NAME, sessionCookie, {
       httpOnly: true,

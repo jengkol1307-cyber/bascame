@@ -11,6 +11,7 @@ const FIREBASE_AUTH_ERROR =
 type LoginRequest = {
   identifier?: unknown;
   password?: unknown;
+  nativeClient?: unknown;
 };
 
 export async function POST(request: Request) {
@@ -87,10 +88,26 @@ export async function POST(request: Request) {
     }
     if (decodedToken.mustChangePassword === true) {
       return NextResponse.json(
-        { ok: true, mustChangePassword: true, role },
+        {
+          ok: true,
+          mustChangePassword: true,
+          role,
+          ...(body.nativeClient === true && typeof decodedToken.email === "string"
+            ? { email: decodedToken.email }
+            : {}),
+        },
         { status: 200 },
       );
     }
+    if (body.nativeClient === true) {
+      return NextResponse.json({
+        ok: true,
+        role,
+        destination: getDashboardPath(decodedToken),
+        ...(typeof decodedToken.email === "string" ? { email: decodedToken.email } : {}),
+      });
+    }
+
     const sessionCookie = await auth.createSessionCookie(tokens.idToken, {
       expiresIn: SESSION_DURATION_MS,
     });

@@ -9,6 +9,8 @@ type Mountain = {
   status: string;
   quota: number | null;
   description: string;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export async function GET() {
@@ -28,6 +30,8 @@ export async function GET() {
         status: typeof data.status === "string" ? data.status : "Belum dikonfirmasi",
         quota: typeof data.quota === "number" ? data.quota : null,
         description: typeof data.description === "string" ? data.description : "",
+        latitude: typeof data.latitude === "number" ? data.latitude : null,
+        longitude: typeof data.longitude === "number" ? data.longitude : null,
       };
     });
     return NextResponse.json({ mountains });
